@@ -1,0 +1,35 @@
+package com.project.orderbill.controller;
+
+import com.project.orderbill.entity.Bill;
+import com.project.orderbill.service.BillService;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
+
+@RestController
+//@RequestMapping("/")
+public class BillController {
+
+    @Autowired
+    private BillService billService;
+
+    @PostMapping("/{username}/orderbill")
+    public ResponseEntity<Bill> createBill(@PathVariable String username) {
+        Bill bill = billService.createBill(username);
+        return ResponseEntity.ok(bill);
+    }
+
+    @GetMapping("/getbill/{username}")
+    public ResponseEntity<Bill> getBill(@PathVariable String username) {
+        Bill bill = billService.getLatestBill(username);
+        if (bill == null)
+            return ResponseEntity.notFound().build();
+        return ResponseEntity.ok(bill);
+    }
+}
+

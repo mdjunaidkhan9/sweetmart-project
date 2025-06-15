@@ -1,0 +1,47 @@
+package com.project.sweetorder.controller;
+
+import com.project.sweetorder.model.SweetOrder;
+import com.project.sweetorder.service.SweetOrderService;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
+
+@RestController
+//@RequestMapping("/orders")
+public class SweetOrderController {
+
+    private final SweetOrderService orderService;
+
+    public SweetOrderController(SweetOrderService orderService) {
+        this.orderService = orderService;
+    }
+
+    // Place order by username
+    @PostMapping("/user/place/{username}")
+    public ResponseEntity<SweetOrder> placeOrder(@PathVariable String username) {
+        return ResponseEntity.ok(orderService.placeOrder(username));
+    }
+
+    // Get all orders for username
+    @GetMapping("/user/{username}")
+    public ResponseEntity<List<SweetOrder>> getOrders(@PathVariable String username) {
+        return ResponseEntity.ok(orderService.getOrders(username));
+    }
+
+    // Update all orders for username with a single payload — example: update totalAmount for all orders
+    @PutMapping("/user/{username}")
+    public ResponseEntity<List<SweetOrder>> updateOrders(
+            @PathVariable String username,
+            @RequestBody SweetOrder updatedOrderData) {
+        List<SweetOrder> updatedOrders = orderService.updateOrders(username, updatedOrderData);
+        return ResponseEntity.ok(updatedOrders);
+    }
+
+    // Delete all orders for username
+    @DeleteMapping("/user/{username}")
+    public ResponseEntity<Void> deleteOrdersByUsername(@PathVariable String username) {
+        orderService.deleteOrdersByUsername(username);
+        return ResponseEntity.noContent().build();
+    }
+}

@@ -1,0 +1,46 @@
+package com.project.orderbill.service;
+
+import com.project.orderbill.dto.CustomerDTO;
+import com.project.orderbill.dto.SweetOrderDTO;
+import com.project.orderbill.entity.BillEntity;
+import com.project.orderbill.feign.CustomerClient;
+import com.project.orderbill.feign.SweetOrderClient;
+import com.project.orderbill.repository.BillRepository;
+import org.springframework.stereotype.Service;
+
+import java.time.LocalDateTime;
+import java.util.List;
+
+@Service
+public class BillService {
+
+    private final CustomerClient customerClient;
+    private final SweetOrderClient sweetOrderClient;
+    private final BillRepository billRepo;
+
+    public BillService(CustomerClient customerClient, SweetOrderClient sweetOrderClient, BillRepository billRepo) {
+        this.customerClient = customerClient;
+        this.sweetOrderClient = sweetOrderClient;
+        this.billRepo = billRepo;
+    }
+
+    public BillEntity generateBill(String username) {
+        CustomerDTO customer = customerClient.getCustomer(username);
+        SweetOrderDTO order = sweetOrderClient.getLatestOrder(username);
+
+        BillEntity bill = new BillEntity(
+                order.getId(),
+                username,
+                customer.getName(),
+                customer.getShippingAddress(),
+                order.getTotalAmount(),
+                LocalDateTime.now()
+        );
+
+        return billRepo.save(bill);
+    }
+
+    public List<BillEntity> getBills(String username) {
+        return billRepo.findByUsername(username);
+    }
+}

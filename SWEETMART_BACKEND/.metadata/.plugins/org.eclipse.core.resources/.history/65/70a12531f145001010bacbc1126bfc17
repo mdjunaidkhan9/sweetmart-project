@@ -1,0 +1,242 @@
+package com.project.cart.service;
+
+import com.project.cart.feign.ProductFeignClient;
+import com.project.cart.model.CartItem;
+import com.project.cart.model.ProductEntity;
+import com.project.cart.repository.CartItemRepository;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.mockito.*;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+
+import java.util.*;
+
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.Mockito.*;
+
+class CartServiceTest {
+
+    @Mock
+    private CartItemRepository cartRepository;
+
+    @Mock
+    private ProductFeignClient productClient;
+
+    @InjectMocks
+    private CartService service;
+
+    private CartItem cartItem;
+    private ProductEntity product;
+
+    @BeforeEach
+    void setUp() {
+        MockitoAnnotations.openMocks(this);
+        cartItem = new CartItem();
+        cartItem.setId(2);
+        cartItem.setUsername("junaid");
+        cartItem.setProductId(4);
+        cartItem.setProductName("Rasgulla");
+        cartItem.setProductPrice(250.0);
+        cartItem.setQuantity(2);
+
+        product = new ProductEntity();
+        product.setProductId(4);
+        product.setProductName("Rasgulla");
+        product.setProductPrice(250.0);
+    }
+
+    // --- addToCart ---
+    @Test
+    void addToCart_NullUsername() {
+        Exception ex = assertThrows(IllegalArgumentException.class, () -> service.addToCart(null, "Rasgulla", 1));
+        assertEquals("Invalid input for addToCart", ex.getMessage());
+    }
+
+    @Test
+    void addToCart_EmptyUsername() {
+        Exception ex = assertThrows(IllegalArgumentException.class, () -> service.addToCart("   ", "Rasgulla", 1));
+        assertEquals("Invalid input for addToCart", ex.getMessage());
+    }
+
+    @Test
+    void addToCart_NullProductName() {
+        Exception ex = assertThrows(IllegalArgumentException.class, () -> service.addToCart("junaid", null, 1));
+        assertEquals("Invalid input for addToCart", ex.getMessage());
+    }
+
+    @Test
+    void addToCart_EmptyProductName() {
+        Exception ex = assertThrows(IllegalArgumentException.class, () -> service.addToCart("junaid", "   ", 1));
+        assertEquals("Invalid input for addToCart", ex.getMessage());
+    }
+
+    @Test
+    void addToCart_QuantityZero() {
+        Exception ex = assertThrows(IllegalArgumentException.class, () -> service.addToCart("junaid", "Rasgulla", 0));
+        assertEquals("Invalid input for addToCart", ex.getMessage());
+    }
+
+    @Test
+    void addToCart_ExistingItem() {
+        when(cartRepository.findByUsernameAndProductName("junaid", "Rasgulla")).thenReturn(cartItem);
+        when(cartRepository.save(any(CartItem.class))).thenReturn(cartItem);
+        CartItem result = service.addToCart("junaid", "Rasgulla", 3);
+        assertEquals(5, result.getQuantity());
+        assertEquals("junaid", result.getUsername());
+        assertEquals("Rasgulla", result.getProductName());
+    }
+
+    @Test
+    void addToCart_ProductNotFound() {
+        when(cartRepository.findByUsernameAndProductName("junaid", "Rasgulla")).thenReturn(null);
+        when(productClient.getProductByName("Rasgulla")).thenReturn(null);
+        Exception ex = assertThrows(IllegalArgumentException.class, () -> service.addToCart("junaid", "Rasgulla", 2));
+        assertEquals("Product not found: Rasgulla", ex.getMessage());
+    }
+
+    @Test
+    void addToCart_NewItem() {
+        when(cartRepository.findByUsernameAndProductName("junaid", "Rasgulla")).thenReturn(null);
+        when(productClient.getProductByName("Rasgulla")).thenReturn(product);
+        when(cartRepository.save(any(CartItem.class))).thenReturn(cartItem);
+        CartItem result = service.addToCart("junaid", "Rasgulla", 2);
+        assertEquals(cartItem, result);
+        assertEquals("Rasgulla", result.getProductName());
+        assertEquals(2, result.getQuantity());
+    }
+
+    // --- getCartByUsername ---
+    @Test
+    void getCartByUsername_Null() {
+        Exception ex = assertThrows(IllegalArgumentException.class, () -> service.getCartByUsername(null));
+        assertEquals("Username is required", ex.getMessage());
+    }
+
+    @Test
+    void getCartByUsername_Empty() {
+        Exception ex = assertThrows(IllegalArgumentException.class, () -> service.getCartByUsername("   "));
+        assertEquals("Username is required", ex.getMessage());
+    }
+
+    @Test
+    void getCartByUsername_Valid() {
+        when(cartRepository.findByUsername("junaid")).thenReturn(List.of(cartItem));
+        List<CartItem> result = service.getCartByUsername("junaid");
+        assertEquals(1, result.size());
+        assertEquals("Rasgulla", result.get(0).getProductName());
+    }
+
+    // --- updateQuantity ---
+    @Test
+    void updateQuantity_NullUsername() {
+        Exception ex = assertThrows(IllegalArgumentException.class, () -> service.updateQuantity(null, "Rasgulla", 1));
+        assertEquals("Invalid input for updateQuantity", ex.getMessage());
+    }
+
+    @Test
+    void updateQuantity_EmptyUsername() {
+        Exception ex = assertThrows(IllegalArgumentException.class, () -> service.updateQuantity("   ", "Rasgulla", 1));
+        assertEquals("Invalid input for updateQuantity", ex.getMessage());
+    }
+
+    @Test
+    void updateQuantity_NullProductName() {
+        Exception ex = assertThrows(IllegalArgumentException.class, () -> service.updateQuantity("junaid", null, 1));
+        assertEquals("Invalid input for updateQuantity", ex.getMessage());
+    }
+
+    @Test
+    void updateQuantity_EmptyProductName() {
+        Exception ex = assertThrows(IllegalArgumentException.class, () -> service.updateQuantity("junaid", "   ", 1));
+        assertEquals("Invalid input for updateQuantity", ex.getMessage());
+    }
+
+    @Test
+    void updateQuantity_QuantityZero() {
+        Exception ex = assertThrows(IllegalArgumentException.class, () -> service.updateQuantity("junaid", "Rasgulla", 0));
+        assertEquals("Invalid input for updateQuantity", ex.getMessage());
+    }
+
+    @Test
+    void updateQuantity_ItemNotFound() {
+        when(cartRepository.findByUsernameAndProductName("junaid", "Rasgulla")).thenReturn(null);
+        Exception ex = assertThrows(IllegalArgumentException.class, () -> service.updateQuantity("junaid", "Rasgulla", 2));
+        assertEquals("Cart item not found for update", ex.getMessage());
+    }
+
+    @Test
+    void updateQuantity_Success() {
+        when(cartRepository.findByUsernameAndProductName("junaid", "Rasgulla")).thenReturn(cartItem);
+        when(cartRepository.save(any(CartItem.class))).thenReturn(cartItem);
+        CartItem result = service.updateQuantity("junaid", "Rasgulla", 5);
+        assertEquals(5, result.getQuantity());
+        assertEquals("Rasgulla", result.getProductName());
+    }
+
+    // --- removeFromCart ---
+    @Test
+    void removeFromCart_NullUsername() {
+        Exception ex = assertThrows(IllegalArgumentException.class, () -> service.removeFromCart(null, "Rasgulla"));
+        assertEquals("Invalid input for removeFromCart", ex.getMessage());
+    }
+
+    @Test
+    void removeFromCart_EmptyUsername() {
+        Exception ex = assertThrows(IllegalArgumentException.class, () -> service.removeFromCart("   ", "Rasgulla"));
+        assertEquals("Invalid input for removeFromCart", ex.getMessage());
+    }
+
+    @Test
+    void removeFromCart_NullProductName() {
+        Exception ex = assertThrows(IllegalArgumentException.class, () -> service.removeFromCart("junaid", null));
+        assertEquals("Invalid input for removeFromCart", ex.getMessage());
+    }
+
+    @Test
+    void removeFromCart_EmptyProductName() {
+        Exception ex = assertThrows(IllegalArgumentException.class, () -> service.removeFromCart("junaid", "   "));
+        assertEquals("Invalid input for removeFromCart", ex.getMessage());
+    }
+
+    @Test
+    void removeFromCart_ItemNotFound() {
+        when(cartRepository.findByUsernameAndProductName("junaid", "Rasgulla")).thenReturn(null);
+        Exception ex = assertThrows(IllegalArgumentException.class, () -> service.removeFromCart("junaid", "Rasgulla"));
+        assertEquals("Cart item not found for remove", ex.getMessage());
+    }
+
+    @Test
+    void removeFromCart_Success() {
+        when(cartRepository.findByUsernameAndProductName("junaid", "Rasgulla")).thenReturn(cartItem);
+        doNothing().when(cartRepository).delete(cartItem);
+        assertDoesNotThrow(() -> service.removeFromCart("junaid", "Rasgulla"));
+    }
+
+    // --- clearCart ---
+    @Test
+    void clearCart_Null() {
+        Exception ex = assertThrows(IllegalArgumentException.class, () -> service.clearCart(null));
+        assertEquals("Username is required for clearCart", ex.getMessage());
+    }
+
+    @Test
+    void clearCart_Empty() {
+        Exception ex = assertThrows(IllegalArgumentException.class, () -> service.clearCart("   "));
+        assertEquals("Username is required for clearCart", ex.getMessage());
+    }
+
+    @Test
+    void clearCart_EmptyCart() {
+        when(cartRepository.findByUsername("junaid")).thenReturn(Collections.emptyList());
+        assertDoesNotThrow(() -> service.clearCart("junaid"));
+    }
+
+    @Test
+    void clearCart_Success() {
+        when(cartRepository.findByUsername("junaid")).thenReturn(List.of(cartItem));
+        doNothing().when(cartRepository).deleteAll(anyList());
+        assertDoesNotThrow(() -> service.clearCart("junaid"));
+        verify(cartRepository).deleteAll(anyList());
+    }
+}

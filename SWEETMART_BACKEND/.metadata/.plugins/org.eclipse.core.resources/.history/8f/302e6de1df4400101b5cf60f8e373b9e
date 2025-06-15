@@ -1,0 +1,99 @@
+server:
+  port: 8080
+
+spring:
+  application:
+    name: GATEWAY-SERVICE
+
+  cloud:
+    gateway:
+      routes:
+        - id: customer-service
+          uri: lb://CUSTOMERSERVICE
+          predicates:
+            - Path=/customers/**
+          filters:
+            - StripPrefix=1
+
+        - id: product-service
+          uri: lb://PRODUCTSERVICE
+          predicates:
+            - Path=/products/**
+          filters:
+            - StripPrefix=1
+
+        - id: sweetitem-service
+          uri: lb://SWEETITEMSERVICE
+          predicates:
+            - Path=/items/**
+          filters:
+            - StripPrefix=1
+
+        - id: cart-service
+          uri: lb://CARTSERVICE
+          predicates:
+            - Path=/cart/**
+          filters:
+            - StripPrefix=1
+
+        - id: sweetorder-service
+          uri: lb://SWEETORDERSERVICE
+          predicates:
+            - Path=/orders/**
+          filters:
+            - StripPrefix=1
+
+        - id: orderbill-service
+          uri: lb://ORDERBILLSERVICE
+          predicates:
+            - Path=/orderbill/**
+          filters:
+            - StripPrefix=1
+
+        - id: auth-service
+          uri: lb://AUTHSERVICE
+          predicates:
+            - Path=/auth/**
+          filters:
+            - StripPrefix=1
+
+        - id: category-service
+          uri: lb://CATEGORYSERVICE
+          predicates:
+            - Path=/category/**
+          filters:
+            - StripPrefix=1
+
+        - id: payment-service
+          uri: lb://PAYMENTSERVICE
+          predicates:
+            - Path=/payment/**
+          filters:
+            - StripPrefix=1
+
+        - id: paymentbill-service
+          uri: lb://PAYMENTBILLSERVICE
+          predicates:
+            - Path=/paymentbill/**
+          filters:
+            - StripPrefix=1
+
+      globalcors:
+        corsConfigurations:
+          '[/**]':
+            allowedOrigins: "http://localhost:5173"
+            allowedMethods: "*"
+            allowedHeaders: "*"
+            allowCredentials: true
+
+eureka:
+  client:
+    service-url:
+      defaultZone: http://localhost:8761/eureka/
+  instance:
+    prefer-ip-address: true
+
+logging:
+  level:
+    root: INFO
+    org.springframework.cloud.gateway: DEBUG

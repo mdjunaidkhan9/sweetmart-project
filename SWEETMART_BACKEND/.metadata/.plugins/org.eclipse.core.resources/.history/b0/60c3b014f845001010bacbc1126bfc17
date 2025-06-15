@@ -1,0 +1,72 @@
+//package com.project.payment.controller;
+//
+//import com.project.payment.entity.PaymentEntity;
+//import com.project.payment.service.PaymentService;
+//import org.junit.jupiter.api.Test;
+//import org.junit.jupiter.api.extension.ExtendWith;
+//import org.mockito.InjectMocks;
+//import org.mockito.Mock;
+//import org.mockito.junit.jupiter.MockitoExtension;
+//import org.springframework.http.ResponseEntity;
+//
+//import java.time.LocalDateTime;
+//import java.util.List;
+//
+//import static org.junit.jupiter.api.Assertions.*;
+//import static org.mockito.Mockito.*;
+//
+//@ExtendWith(MockitoExtension.class)
+//class PaymentControllerTest {
+//
+//    @Mock
+//    private PaymentService paymentService;
+//
+//    @InjectMocks
+//    private PaymentController paymentController;
+//
+//    @Test
+//    void testMakePayment() {
+//        Long billId = 1L;
+//        PaymentEntity payment = new PaymentEntity(billId, "Junaid", 100.0, "SUCCESS", LocalDateTime.now());
+//
+//        when(paymentService.makePayment(billId)).thenReturn(payment);
+//        ResponseEntity<PaymentEntity> response = paymentController.makePayment(billId);
+//
+//        assertEquals(200, response.getStatusCode().value());
+//        assertNotNull(response.getBody());
+//        assertEquals("Junaid", response.getBody().getUsername());
+//    }
+//
+//    @Test
+//    void testGetAllPayments() {
+//        List<PaymentEntity> payments = List.of(new PaymentEntity(1L, "Junaid", 100.0, "SUCCESS", LocalDateTime.now()));
+//        when(paymentService.getAllPayments()).thenReturn(payments);
+//
+//        ResponseEntity<List<PaymentEntity>> response = paymentController.getAllPayments();
+//        assertEquals(200, response.getStatusCode().value());
+//        assertFalse(response.getBody().isEmpty());
+//        assertEquals("Junaid", response.getBody().get(0).getUsername());
+//    }
+//
+//    @Test
+//    void testGetPaymentById() {
+//        Long paymentId = 1L;
+//        PaymentEntity payment = new PaymentEntity(1L, "Junaid", 100.0, "SUCCESS", LocalDateTime.now());
+//
+//        when(paymentService.getPaymentById(paymentId)).thenReturn(payment);
+//        ResponseEntity<PaymentEntity> response = paymentController.getPaymentById(paymentId);
+//
+//        assertEquals(200, response.getStatusCode().value());
+//        assertNotNull(response.getBody());
+//        assertEquals("Junaid", response.getBody().getUsername());
+//    }
+//
+//    @Test
+//    void testDeletePayment() {
+//        Long paymentId = 1L;
+//        doNothing().when(paymentService).deletePayment(paymentId);
+//
+//        ResponseEntity<Void> response = paymentController.deletePayment(paymentId);
+//        assertEquals(204, response.getStatusCode().value());
+//    }
+//}

@@ -1,0 +1,77 @@
+package com.project.cart.controller;
+
+import com.project.cart.model.CartItem;
+import com.project.cart.service.CartService;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.mockito.*;
+import org.springframework.http.ResponseEntity;
+
+import java.util.List;
+
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.Mockito.*;
+
+class CartControllerTest {
+
+    @InjectMocks
+    private CartController controller;
+
+    @Mock
+    private CartService cartService;
+
+    private CartItem cartItem;
+
+    @BeforeEach
+    void setUp() {
+        MockitoAnnotations.openMocks(this);
+        cartItem = new CartItem();
+        cartItem.setUsername("junaid");
+        cartItem.setProductName("Rasgulla");
+        cartItem.setQuantity(2);
+        cartItem.setProductId(4);
+        cartItem.setProductPrice(250.0);
+    }
+
+    @Test
+    void addToCart_valid() {
+        when(cartService.addToCart("junaid", "Rasgulla", 2)).thenReturn(cartItem);
+        ResponseEntity<CartItem> resp = controller.addToCart("junaid", "Rasgulla", 2);
+        assertNotNull(resp.getBody());
+        assertEquals("Rasgulla", resp.getBody().getProductName());
+        verify(cartService, times(1)).addToCart("junaid", "Rasgulla", 2);
+    }
+
+    @Test
+    void getCart_valid() {
+        when(cartService.getCartByUsername("junaid")).thenReturn(List.of(cartItem));
+        ResponseEntity<List<CartItem>> resp = controller.getCart("junaid");
+        assertFalse(resp.getBody().isEmpty());
+        verify(cartService, times(1)).getCartByUsername("junaid");
+    }
+
+    @Test
+    void updateQuantity_valid() {
+        when(cartService.updateQuantity("junaid", "Rasgulla", 3)).thenReturn(cartItem);
+        ResponseEntity<CartItem> resp = controller.updateQuantity("junaid", "Rasgulla", 3);
+        assertNotNull(resp.getBody());
+        assertEquals("Rasgulla", resp.getBody().getProductName());
+        verify(cartService, times(1)).updateQuantity("junaid", "Rasgulla", 3);
+    }
+
+    @Test
+    void removeFromCart_valid() {
+        doNothing().when(cartService).removeFromCart("junaid", "Rasgulla");
+        ResponseEntity<String> resp = controller.removeFromCart("junaid", "Rasgulla");
+        assertEquals("Product removed from cart successfully.", resp.getBody());
+        verify(cartService, times(1)).removeFromCart("junaid", "Rasgulla");
+    }
+
+    @Test
+    void clearCart_valid() {
+        doNothing().when(cartService).clearCart("junaid");
+        ResponseEntity<String> resp = controller.clearCart("junaid");
+        assertEquals("Cart cleared successfully.", resp.getBody());
+        verify(cartService, times(1)).clearCart("junaid");
+    }
+}

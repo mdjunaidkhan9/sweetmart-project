@@ -1,0 +1,93 @@
+package com.project.cart.service;
+
+import com.project.cart.feign.ProductFeignClient;
+import com.project.cart.model.CartItem;
+import com.project.cart.model.ProductEntity;
+import com.project.cart.repository.CartItemRepository;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.stereotype.Service;
+
+import java.util.List;
+
+@Service
+public class CartService {
+
+    @Autowired
+    private CartItemRepository cartRepository;
+
+    @Autowired
+    private ProductFeignClient productClient;
+
+    public CartItem addToCart(String username, String productName, int quantity) {
+        if (username == null || username.trim().isEmpty()
+                || productName == null || productName.trim().isEmpty()
+                || quantity <= 0) {
+            throw new IllegalArgumentException("Invalid input for addToCart");
+        }
+
+        CartItem existing = cartRepository.findByUsernameAndProductName(username, productName);
+        if (existing != null) {
+            existing.setQuantity(existing.getQuantity() + quantity);
+            return cartRepository.save(existing);
+        }
+
+        ProductEntity product = productClient.getProductByName(productName);
+        if (product == null) {
+            throw new IllegalArgumentException("Product not found: " + productName);
+        }
+
+        CartItem newItem = new CartItem();
+        newItem.setUsername(username);
+        newItem.setProductName(product.getProductName());
+        newItem.setProductPrice(product.getProductPrice());
+        newItem.setProductId(product.getProductId());
+        newItem.setQuantity(quantity);
+
+        return cartRepository.save(newItem);
+    }
+
+    public List<CartItem> getCartByUsername(String username) {
+        if (username == null || username.trim().isEmpty()) {
+            throw new IllegalArgumentException("Username is required");
+        }
+        return cartRepository.findByUsername(username);
+    }
+
+    public CartItem updateQuantity(String username, String productName, int quantity) {
+        if (username == null || username.trim().isEmpty()
+                || productName == null || productName.trim().isEmpty()
+                || quantity <= 0) {
+            throw new IllegalArgumentException("Invalid input for updateQuantity");
+        }
+        CartItem existing = cartRepository.findByUsernameAndProductName(username, productName);
+        if (existing == null) {
+            throw new IllegalArgumentException("Cart item not found for update");
+        }
+        existing.setQuantity(quantity);
+        return cartRepository.save(existing);
+    }
+
+    public void removeFromCart(String username, String productName) {
+        if (username == null || username.trim().isEmpty()
+                || productName == null || productName.trim().isEmpty()) {
+            throw new IllegalArgumentException("Invalid input for removeFromCart");
+        }
+        CartItem existing = cartRepository.findByUsernameAndProductName(username, productName);
+        if (existing == null) {
+            throw new IllegalArgumentException("Cart item not found for remove");
+        }
+        cartRepository.delete(existing);
+    }
+
+    public void clearCart(String username) {
+        if (username == null || username.trim().isEmpty()) {
+            throw new IllegalArgumentException("Username is required for clearCart");
+        }
+        List<CartItem> items = cartRepository.findByUsername(username);
+        if (items != null && !items.isEmpty()) {
+            cartRepository.deleteAll(items);
+        }
+    }
+}

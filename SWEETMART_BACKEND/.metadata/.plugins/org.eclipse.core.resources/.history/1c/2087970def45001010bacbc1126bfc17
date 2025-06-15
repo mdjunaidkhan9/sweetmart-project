@@ -1,0 +1,132 @@
+package com.project.cart.controller;
+
+import com.project.cart.model.CartItem;
+import com.project.cart.service.CartService;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.mockito.*;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+
+import java.util.Collections;
+import java.util.List;
+
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.Mockito.*;
+
+class CartControllerTest {
+
+    @Mock
+    private CartService cartService;
+
+    @InjectMocks
+    private CartController controller;
+
+    private CartItem cartItem;
+
+    @BeforeEach
+    void setUp() {
+        MockitoAnnotations.openMocks(this);
+        cartItem = new CartItem();
+        cartItem.setUsername("user1");
+        cartItem.setProductName("prod1");
+        cartItem.setQuantity(2);
+    }
+
+    // --- addToCart ---
+    @Test
+    void addToCart_InvalidInput() {
+        assertEquals(HttpStatus.BAD_REQUEST, controller.addToCart(null, "prod1", 1).getStatusCode());
+        assertEquals(HttpStatus.BAD_REQUEST, controller.addToCart("   ", "prod1", 1).getStatusCode());
+        assertEquals(HttpStatus.BAD_REQUEST, controller.addToCart("user1", null, 1).getStatusCode());
+        assertEquals(HttpStatus.BAD_REQUEST, controller.addToCart("user1", "   ", 1).getStatusCode());
+        assertEquals(HttpStatus.BAD_REQUEST, controller.addToCart("user1", "prod1", 0).getStatusCode());
+    }
+
+    @Test
+    void addToCart_Valid() {
+        when(cartService.addToCart("user1", "prod1", 2))
+                .thenReturn(ResponseEntity.status(HttpStatus.CREATED).body(cartItem));
+        ResponseEntity<CartItem> resp = controller.addToCart("user1", "prod1", 2);
+        assertEquals(HttpStatus.CREATED, resp.getStatusCode());
+        assertEquals(cartItem, resp.getBody());
+    }
+
+    // --- getCart ---
+    @Test
+    void getCart_InvalidInput() {
+        assertEquals(HttpStatus.BAD_REQUEST, controller.getCart(null).getStatusCode());
+        assertEquals(HttpStatus.BAD_REQUEST, controller.getCart("   ").getStatusCode());
+    }
+
+    @Test
+    void getCart_Empty() {
+        when(cartService.getCartByUsername("user1"))
+                .thenReturn(ResponseEntity.status(HttpStatus.NO_CONTENT).body(Collections.emptyList()));
+        ResponseEntity<List<CartItem>> resp = controller.getCart("user1");
+        assertEquals(HttpStatus.NO_CONTENT, resp.getStatusCode());
+        assertTrue(resp.getBody().isEmpty());
+    }
+
+    @Test
+    void getCart_NotEmpty() {
+        when(cartService.getCartByUsername("user1"))
+                .thenReturn(ResponseEntity.ok(List.of(cartItem)));
+        ResponseEntity<List<CartItem>> resp = controller.getCart("user1");
+        assertEquals(HttpStatus.OK, resp.getStatusCode());
+        assertEquals(1, resp.getBody().size());
+    }
+
+    // --- updateQuantity ---
+    @Test
+    void updateQuantity_InvalidInput() {
+        assertEquals(HttpStatus.BAD_REQUEST, controller.updateQuantity(null, "prod1", 1).getStatusCode());
+        assertEquals(HttpStatus.BAD_REQUEST, controller.updateQuantity("   ", "prod1", 1).getStatusCode());
+        assertEquals(HttpStatus.BAD_REQUEST, controller.updateQuantity("user1", null, 1).getStatusCode());
+        assertEquals(HttpStatus.BAD_REQUEST, controller.updateQuantity("user1", "   ", 1).getStatusCode());
+        assertEquals(HttpStatus.BAD_REQUEST, controller.updateQuantity("user1", "prod1", 0).getStatusCode());
+    }
+
+    @Test
+    void updateQuantity_Valid() {
+        when(cartService.updateQuantity("user1", "prod1", 3))
+                .thenReturn(ResponseEntity.ok(cartItem));
+        ResponseEntity<CartItem> resp = controller.updateQuantity("user1", "prod1", 3);
+        assertEquals(HttpStatus.OK, resp.getStatusCode());
+        assertEquals(cartItem, resp.getBody());
+    }
+
+    // --- removeFromCart ---
+    @Test
+    void removeFromCart_InvalidInput() {
+        assertEquals(HttpStatus.BAD_REQUEST, controller.removeFromCart(null, "prod1").getStatusCode());
+        assertEquals(HttpStatus.BAD_REQUEST, controller.removeFromCart("   ", "prod1").getStatusCode());
+        assertEquals(HttpStatus.BAD_REQUEST, controller.removeFromCart("user1", null).getStatusCode());
+        assertEquals(HttpStatus.BAD_REQUEST, controller.removeFromCart("user1", "   ").getStatusCode());
+    }
+
+    @Test
+    void removeFromCart_Valid() {
+        when(cartService.removeFromCart("user1", "prod1"))
+                .thenReturn(ResponseEntity.ok("Removed"));
+        ResponseEntity<String> resp = controller.removeFromCart("user1", "prod1");
+        assertEquals(HttpStatus.OK, resp.getStatusCode());
+        assertEquals("Removed", resp.getBody());
+    }
+
+    // --- clearCart ---
+    @Test
+    void clearCart_InvalidInput() {
+        assertEquals(HttpStatus.BAD_REQUEST, controller.clearCart(null).getStatusCode());
+        assertEquals(HttpStatus.BAD_REQUEST, controller.clearCart("   ").getStatusCode());
+    }
+
+    @Test
+    void clearCart_Valid() {
+        when(cartService.clearCart("user1"))
+                .thenReturn(ResponseEntity.ok("Cleared"));
+        ResponseEntity<String> resp = controller.clearCart("user1");
+        assertEquals(HttpStatus.OK, resp.getStatusCode());
+        assertEquals("Cleared", resp.getBody());
+    }
+}

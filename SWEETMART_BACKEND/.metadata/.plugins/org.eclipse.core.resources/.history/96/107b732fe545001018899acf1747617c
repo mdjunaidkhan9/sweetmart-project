@@ -1,0 +1,74 @@
+package com.project.customer.service;
+
+import com.project.customer.model.Customer;
+import com.project.customer.repository.CustomerRepository;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import java.util.Comparator;
+import java.util.List;
+
+@Service
+public class CustomerService {
+
+    @Autowired
+    private CustomerRepository repo;
+
+    public Customer saveCustomer(String username, Customer customer) {
+        if (username == null || username.trim().isEmpty()) {
+            throw new IllegalArgumentException("Username must not be null or empty.");
+        }
+        if (customer == null) {
+            throw new IllegalArgumentException("Customer details must not be null.");
+        }
+
+        customer.setUsername(username);
+        return repo.save(customer);
+    }
+
+    public Customer getCustomer(String username) {
+        if (username == null || username.trim().isEmpty()) {
+            throw new IllegalArgumentException("Username must not be null or empty.");
+        }
+
+        Customer customer = repo.findByUsername(username);
+        if (customer == null) {
+            throw new RuntimeException("No customer found with username: " + username);
+        }
+        return customer;
+    }
+
+    public List<Customer> getAllCustomersSortedByName() {
+        List<Customer> list = repo.findAll();
+        if (list == null || list.isEmpty()) {
+            throw new RuntimeException("No customers found to sort by name.");
+        }
+        list.sort(Comparator.comparing(Customer::getName));
+        return list;
+    }
+    public List<Customer> getAllCustomers() {
+        return repo.findAll();
+    }
+
+    public List<Customer> getAllCustomersSortedByEmail() {
+        List<Customer> list = repo.findAll();
+        if (list == null || list.isEmpty()) {
+            throw new RuntimeException("No customers found to sort by email.");
+        }
+        list.sort(Comparator.comparing(Customer::getEmail));
+        return list;
+    }
+
+    public String deleteCustomer(Long id) {
+        if (id == null) {
+            throw new IllegalArgumentException("ID must not be null.");
+        }
+
+        if (!repo.existsById(id)) {
+            throw new RuntimeException("Customer not found with ID: " + id);
+        }
+
+        repo.deleteById(id);
+        return "Customer deleted with ID: " + id;
+    }
+}

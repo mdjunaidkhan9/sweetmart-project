@@ -1,0 +1,274 @@
+//package com.project.cart.service;
+//
+//import com.project.cart.feign.ProductFeignClient;
+//import com.project.cart.model.CartItem;
+//import com.project.cart.model.ProductEntity;
+//import com.project.cart.repository.CartItemRepository;
+//import org.junit.jupiter.api.BeforeEach;
+//import org.junit.jupiter.api.Test;
+//import org.mockito.*;
+//import org.springframework.http.HttpStatus;
+//import org.springframework.http.ResponseEntity;
+//
+//import java.util.Collections;
+//import java.util.List;
+//
+//import static org.junit.jupiter.api.Assertions.*;
+//import static org.mockito.Mockito.*;
+//
+//class CartServiceTest {
+//
+//    @Mock
+//    private CartItemRepository cartRepository;
+//
+//    @Mock
+//    private ProductFeignClient productClient;
+//
+//    @InjectMocks
+//    private CartService service;
+//
+//    private CartItem cartItem;
+//    private ProductEntity product;
+//
+//    @BeforeEach
+//    void setUp() {
+//        MockitoAnnotations.openMocks(this);
+//        cartItem = new CartItem();
+//        cartItem.setUsername("user1");
+//        cartItem.setProductName("prod1");
+//        cartItem.setQuantity(2);
+//        cartItem.setProductId(1);
+//        cartItem.setProductPrice(10.0);
+//
+//        product = new ProductEntity();
+//        product.setProductId(1);
+//        product.setProductName("prod1");
+//        product.setProductPrice(10.0);
+//    }
+//
+//    // --- addToCart ---
+//    @Test
+//    void addToCart_NullUsername() {
+//        ResponseEntity<CartItem> resp = service.addToCart(null, "prod1", 1);
+//        assertEquals(HttpStatus.BAD_REQUEST, resp.getStatusCode());
+//        assertNull(resp.getBody());
+//    }
+//
+//    @Test
+//    void addToCart_EmptyUsername() {
+//        ResponseEntity<CartItem> resp = service.addToCart("   ", "prod1", 1);
+//        assertEquals(HttpStatus.BAD_REQUEST, resp.getStatusCode());
+//        assertNull(resp.getBody());
+//    }
+//
+//    @Test
+//    void addToCart_NullProductName() {
+//        ResponseEntity<CartItem> resp = service.addToCart("user1", null, 1);
+//        assertEquals(HttpStatus.BAD_REQUEST, resp.getStatusCode());
+//        assertNull(resp.getBody());
+//    }
+//
+//    @Test
+//    void addToCart_EmptyProductName() {
+//        ResponseEntity<CartItem> resp = service.addToCart("user1", "   ", 1);
+//        assertEquals(HttpStatus.BAD_REQUEST, resp.getStatusCode());
+//        assertNull(resp.getBody());
+//    }
+//
+//    @Test
+//    void addToCart_QuantityZero() {
+//        ResponseEntity<CartItem> resp = service.addToCart("user1", "prod1", 0);
+//        assertEquals(HttpStatus.BAD_REQUEST, resp.getStatusCode());
+//        assertNull(resp.getBody());
+//    }
+//
+//    @Test
+//    void addToCart_ExistingItem() {
+//        when(cartRepository.findByUsernameAndProductName("user1", "prod1")).thenReturn(cartItem);
+//        when(cartRepository.save(any(CartItem.class))).thenReturn(cartItem);
+//        ResponseEntity<CartItem> resp = service.addToCart("user1", "prod1", 3);
+//        assertEquals(HttpStatus.OK, resp.getStatusCode());
+//        assertEquals(5, resp.getBody().getQuantity());
+//    }
+//
+//    @Test
+//    void addToCart_ProductNotFound() {
+//        when(cartRepository.findByUsernameAndProductName("user1", "prod1")).thenReturn(null);
+//        when(productClient.getProductByName("prod1")).thenReturn(null);
+//        ResponseEntity<CartItem> resp = service.addToCart("user1", "prod1", 2);
+//        assertEquals(HttpStatus.NOT_FOUND, resp.getStatusCode());
+//        assertNull(resp.getBody());
+//    }
+//
+//    @Test
+//    void addToCart_NewItem() {
+//        when(cartRepository.findByUsernameAndProductName("user1", "prod1")).thenReturn(null);
+//        when(productClient.getProductByName("prod1")).thenReturn(product);
+//        when(cartRepository.save(any(CartItem.class))).thenReturn(cartItem);
+//        ResponseEntity<CartItem> resp = service.addToCart("user1", "prod1", 2);
+//        assertEquals(HttpStatus.CREATED, resp.getStatusCode());
+//        assertEquals(cartItem, resp.getBody());
+//    }
+//
+//    // --- getCartByUsername ---
+//    @Test
+//    void getCartByUsername_Null() {
+//        ResponseEntity<List<CartItem>> resp = service.getCartByUsername(null);
+//        assertEquals(HttpStatus.BAD_REQUEST, resp.getStatusCode());
+//        assertNull(resp.getBody());
+//    }
+//
+//    @Test
+//    void getCartByUsername_Empty() {
+//        ResponseEntity<List<CartItem>> resp = service.getCartByUsername("   ");
+//        assertEquals(HttpStatus.BAD_REQUEST, resp.getStatusCode());
+//        assertNull(resp.getBody());
+//    }
+//
+//    @Test
+//    void getCartByUsername_EmptyList() {
+//        when(cartRepository.findByUsername("user1")).thenReturn(Collections.emptyList());
+//        ResponseEntity<List<CartItem>> resp = service.getCartByUsername("user1");
+//        assertEquals(HttpStatus.NO_CONTENT, resp.getStatusCode());
+//        assertTrue(resp.getBody().isEmpty());
+//    }
+//
+//    @Test
+//    void getCartByUsername_NotEmpty() {
+//        when(cartRepository.findByUsername("user1")).thenReturn(List.of(cartItem));
+//        ResponseEntity<List<CartItem>> resp = service.getCartByUsername("user1");
+//        assertEquals(HttpStatus.OK, resp.getStatusCode());
+//        assertEquals(1, resp.getBody().size());
+//    }
+//
+//    // --- updateQuantity ---
+//    @Test
+//    void updateQuantity_NullUsername() {
+//        ResponseEntity<CartItem> resp = service.updateQuantity(null, "prod1", 1);
+//        assertEquals(HttpStatus.BAD_REQUEST, resp.getStatusCode());
+//        assertNull(resp.getBody());
+//    }
+//
+//    @Test
+//    void updateQuantity_EmptyUsername() {
+//        ResponseEntity<CartItem> resp = service.updateQuantity("   ", "prod1", 1);
+//        assertEquals(HttpStatus.BAD_REQUEST, resp.getStatusCode());
+//        assertNull(resp.getBody());
+//    }
+//
+//    @Test
+//    void updateQuantity_NullProductName() {
+//        ResponseEntity<CartItem> resp = service.updateQuantity("user1", null, 1);
+//        assertEquals(HttpStatus.BAD_REQUEST, resp.getStatusCode());
+//        assertNull(resp.getBody());
+//    }
+//
+//    @Test
+//    void updateQuantity_EmptyProductName() {
+//        ResponseEntity<CartItem> resp = service.updateQuantity("user1", "   ", 1);
+//        assertEquals(HttpStatus.BAD_REQUEST, resp.getStatusCode());
+//        assertNull(resp.getBody());
+//    }
+//
+//    @Test
+//    void updateQuantity_QuantityZero() {
+//        ResponseEntity<CartItem> resp = service.updateQuantity("user1", "prod1", 0);
+//        assertEquals(HttpStatus.BAD_REQUEST, resp.getStatusCode());
+//        assertNull(resp.getBody());
+//    }
+//
+//    @Test
+//    void updateQuantity_ItemNotFound() {
+//        when(cartRepository.findByUsernameAndProductName("user1", "prod1")).thenReturn(null);
+//        ResponseEntity<CartItem> resp = service.updateQuantity("user1", "prod1", 2);
+//        assertEquals(HttpStatus.NOT_FOUND, resp.getStatusCode());
+//        assertNull(resp.getBody());
+//    }
+//
+//    @Test
+//    void updateQuantity_Success() {
+//        when(cartRepository.findByUsernameAndProductName("user1", "prod1")).thenReturn(cartItem);
+//        when(cartRepository.save(any(CartItem.class))).thenReturn(cartItem);
+//        ResponseEntity<CartItem> resp = service.updateQuantity("user1", "prod1", 5);
+//        assertEquals(HttpStatus.OK, resp.getStatusCode());
+//        assertEquals(5, resp.getBody().getQuantity());
+//    }
+//
+//    // --- removeFromCart ---
+//    @Test
+//    void removeFromCart_NullUsername() {
+//        ResponseEntity<String> resp = service.removeFromCart(null, "prod1");
+//        assertEquals(HttpStatus.BAD_REQUEST, resp.getStatusCode());
+//        assertEquals("Invalid input for removeFromCart", resp.getBody());
+//    }
+//
+//    @Test
+//    void removeFromCart_EmptyUsername() {
+//        ResponseEntity<String> resp = service.removeFromCart("   ", "prod1");
+//        assertEquals(HttpStatus.BAD_REQUEST, resp.getStatusCode());
+//        assertEquals("Invalid input for removeFromCart", resp.getBody());
+//    }
+//
+//    @Test
+//    void removeFromCart_NullProductName() {
+//        ResponseEntity<String> resp = service.removeFromCart("user1", null);
+//        assertEquals(HttpStatus.BAD_REQUEST, resp.getStatusCode());
+//        assertEquals("Invalid input for removeFromCart", resp.getBody());
+//    }
+//
+//    @Test
+//    void removeFromCart_EmptyProductName() {
+//        ResponseEntity<String> resp = service.removeFromCart("user1", "   ");
+//        assertEquals(HttpStatus.BAD_REQUEST, resp.getStatusCode());
+//        assertEquals("Invalid input for removeFromCart", resp.getBody());
+//    }
+//
+//    @Test
+//    void removeFromCart_ItemNotFound() {
+//        when(cartRepository.findByUsernameAndProductName("user1", "prod1")).thenReturn(null);
+//        ResponseEntity<String> resp = service.removeFromCart("user1", "prod1");
+//        assertEquals(HttpStatus.NOT_FOUND, resp.getStatusCode());
+//        assertEquals("Cart item not found for remove", resp.getBody());
+//    }
+//
+//    @Test
+//    void removeFromCart_Success() {
+//        when(cartRepository.findByUsernameAndProductName("user1", "prod1")).thenReturn(cartItem);
+//        doNothing().when(cartRepository).delete(cartItem);
+//        ResponseEntity<String> resp = service.removeFromCart("user1", "prod1");
+//        assertEquals(HttpStatus.OK, resp.getStatusCode());
+//        assertEquals("Removed", resp.getBody());
+//    }
+//
+//    // --- clearCart ---
+//    @Test
+//    void clearCart_Null() {
+//        ResponseEntity<String> resp = service.clearCart(null);
+//        assertEquals(HttpStatus.BAD_REQUEST, resp.getStatusCode());
+//        assertEquals("Username is required for clearCart", resp.getBody());
+//    }
+//
+//    @Test
+//    void clearCart_Empty() {
+//        ResponseEntity<String> resp = service.clearCart("   ");
+//        assertEquals(HttpStatus.BAD_REQUEST, resp.getStatusCode());
+//        assertEquals("Username is required for clearCart", resp.getBody());
+//    }
+//
+//    @Test
+//    void clearCart_EmptyCart() {
+//        when(cartRepository.findByUsername("user1")).thenReturn(Collections.emptyList());
+//        ResponseEntity<String> resp = service.clearCart("user1");
+//        assertEquals(HttpStatus.NO_CONTENT, resp.getStatusCode());
+//        assertEquals("Cart already empty", resp.getBody());
+//    }
+//
+//    @Test
+//    void clearCart_Success() {
+//        when(cartRepository.findByUsername("user1")).thenReturn(List.of(cartItem));
+//        doNothing().when(cartRepository).deleteAll(anyList());
+//        ResponseEntity<String> resp = service.clearCart("user1");
+//        assertEquals(HttpStatus.OK, resp.getStatusCode());
+//        assertEquals("Cleared", resp.getBody());
+//    }
+//}

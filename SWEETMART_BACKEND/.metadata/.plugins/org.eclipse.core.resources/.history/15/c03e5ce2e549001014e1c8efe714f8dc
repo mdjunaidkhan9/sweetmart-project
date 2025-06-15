@@ -1,0 +1,90 @@
+package com.project.auth.service;
+
+import com.project.auth.model.User;
+import com.project.auth.repo.UserRepository;
+//import com.project.auth.service.JwtUtil;
+import com.project.auth.exception.AuthenticationException;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.stereotype.Service;
+
+import java.util.List;
+
+@Service
+public class AuthService {
+
+    private static final Logger logger = LoggerFactory.getLogger(AuthService.class);
+
+    private final UserRepository repo;
+    private final PasswordEncoder encoder;
+    private final JwtUtil jwtUtil;
+    private final EmailService emailService;
+
+    // ✅ Constructor Injection
+    public AuthService(UserRepository repo, PasswordEncoder encoder, JwtUtil jwtUtil, EmailService emailService) {
+        this.repo = repo;
+        this.encoder = encoder;
+        this.jwtUtil = jwtUtil;
+        this.emailService = emailService;
+    }
+
+    public String register(User user) {
+        if (repo.findByUsername(user.getUsername()).isPresent()) {
+            return "Username taken";
+        }
+
+        user.setPassword(encoder.encode(user.getPassword()));
+        repo.save(user);
+
+        try {
+            emailService.sendEmail(
+                    user.getUserEmail(),
+                    "Registration Successful",
+                    "Welcome, " + user.getUsername() + "! Your account is now active.",
+                    user.getRole()
+            );
+        } catch (Exception e) {
+            logger.error("Email sending failed: {}", e.getMessage());
+        }
+
+        return "User registered successfully";
+    }
+
+    public String login(String username, String password) {
+        User user = repo.findByUsername(username)
+                .orElseThrow(() -> new AuthenticationException("User not found"));
+
+        if (encoder.matches(password, user.getPassword())) {
+            return jwtUtil.generateToken(user.getUsername(), user.getRole());
+        } else {
+            throw new AuthenticationException("Invalid credentials");
+        }
+    }
+
+    public List<User> getAllUsers() {
+        return repo.findAll();
+    }
+
+    public List<User> getUsersByRole(String role) {
+        return repo.findByRoleIgnoreCase(role);
+    }
+    @PostMapping("/register/request-otp")
+    public ResponseEntity<String> requestOtp(@RequestBody User user) {
+        if (user.getUserEmail() == null || user.getUsername() == null) {
+            return ResponseEntity.badRequest().body("Username and email are required");
+        }
+
+        String result = authService.generateOtpAndSend(user);
+        return ResponseEntity.ok(result);
+    }
+
+    @PostMapping("/register/verify-otp")
+    public ResponseEntity<String> verifyOtp(@RequestParam String username, @RequestParam String otp) {
+        boolean verified = authService.verifyOtp(username, otp);
+        if (verified) return ResponseEntity.ok("OTP verified. Registration complete.");
+        else return ResponseEntity.status(400).body("Invalid OTP");
+    }
+
+}

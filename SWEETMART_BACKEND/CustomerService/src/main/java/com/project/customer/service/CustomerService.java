@@ -1,0 +1,89 @@
+package com.project.customer.service;
+
+import com.project.customer.model.Customer;
+import com.project.customer.repository.CustomerRepository;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.stereotype.Service;
+
+import java.util.Comparator;
+import java.util.List;
+import java.util.Optional;
+
+@Service
+public class CustomerService {
+
+    @Autowired
+    private CustomerRepository repo;
+
+    /** Save a customer */
+    public ResponseEntity<Customer> saveCustomer(String username, Customer customer) {
+        if (username == null || username.trim().isEmpty()) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(null);
+        }
+        if (customer == null) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(null);
+        }
+        customer.setUsername(username);
+        Customer savedCustomer = repo.save(customer);
+        return ResponseEntity.status(HttpStatus.CREATED).body(savedCustomer);
+    }
+
+    /** Get a customer by username */
+    public ResponseEntity<Customer> getCustomer(String username) {
+        if (username == null || username.trim().isEmpty()) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(null);
+        }
+        Optional<Customer> customer = repo.findByUsername(username);
+        return customer.map(ResponseEntity::ok)
+                .orElse(ResponseEntity.status(HttpStatus.NOT_FOUND).body(null));
+    }
+
+    /** Get all customers */
+    public ResponseEntity<List<Customer>> getAllCustomers() {
+        List<Customer> list = repo.findAll();
+        if (list.isEmpty()) {
+            return ResponseEntity.status(HttpStatus.NO_CONTENT).body(list);
+        }
+        return ResponseEntity.ok(list);
+    }
+
+    /** Get all customers sorted by name */
+    public ResponseEntity<List<Customer>> getAllCustomersSortedByName() {
+        List<Customer> list = repo.findAll();
+        if (list.isEmpty()) {
+            return ResponseEntity.status(HttpStatus.NO_CONTENT).body(list);
+        }
+        list.sort(Comparator.comparing(
+            Customer::getName,
+            Comparator.nullsLast(String::compareToIgnoreCase)
+        ));
+        return ResponseEntity.ok(list);
+    }
+
+    /** Get all customers sorted by email */
+    public ResponseEntity<List<Customer>> getAllCustomersSortedByEmail() {
+        List<Customer> list = repo.findAll();
+        if (list.isEmpty()) {
+            return ResponseEntity.status(HttpStatus.NO_CONTENT).body(list);
+        }
+        list.sort(Comparator.comparing(
+            Customer::getEmail,
+            Comparator.nullsLast(String::compareToIgnoreCase)
+        ));
+        return ResponseEntity.ok(list);
+    }
+
+    /** Delete a customer by ID */
+    public ResponseEntity<String> deleteCustomer(Long id) {
+        if (id == null) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("ID must not be null.");
+        }
+        if (!repo.existsById(id)) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Customer not found with ID: " + id);
+        }
+        repo.deleteById(id);
+        return ResponseEntity.ok("Customer deleted with ID: " + id);
+    }
+}

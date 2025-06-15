@@ -1,0 +1,44 @@
+package com.project.payment.controller;
+
+import com.project.payment.entity.Payment;
+import com.project.payment.service.PaymentService;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
+import java.util.Map;
+
+@RestController
+public class PaymentController {
+
+    private final PaymentService paymentService;
+
+    public PaymentController(PaymentService paymentService) {
+        this.paymentService = paymentService;
+    }
+
+    @PostMapping("/user/{username}")
+    public ResponseEntity<Map<String, Object>> pay(@PathVariable String username) {
+        return paymentService.processPayment(username);
+    }
+
+    @GetMapping("/user/get/{username}")
+    public ResponseEntity<Map<String, Object>> getPaymentDetails(@PathVariable String username) {
+        return paymentService.getLatestPayment(username);
+    }
+
+    @PutMapping("/update-status/{paymentId}")
+    public ResponseEntity<Payment> updateStatus(@PathVariable String paymentId) {
+        return paymentService.updatePaymentStatus(paymentId);
+    }
+
+    @GetMapping("/admin/getallpayement")
+    public ResponseEntity<List<Payment>> getAllPayments() {
+        return paymentService.getAllPayments();
+    }
+    @GetMapping("/user/allpayments/{username}")
+    public ResponseEntity<List<Payment>> getAllPaymentsByUser(@PathVariable String username) {
+        return paymentService.getAllPaymentsByUser(username);
+    }
+
+}

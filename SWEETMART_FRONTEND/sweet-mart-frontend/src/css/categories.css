@@ -1,0 +1,152 @@
+/* ============================ */
+/*      Category Component      */
+/* ============================ */
+
+.category-container {
+  background-color: #F5F5F5;
+  padding: 2rem;
+  border-radius: 12px;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  color: #24583C;
+  max-width: 1200px;
+  margin: auto;
+}
+
+.category-container h2 {
+  text-align: center;
+  font-size: 2rem;
+  margin-bottom: 2rem;
+  color: #24583C;
+}
+
+.category-box {
+  background-color: #FFFFFF;
+  border: 2px solid #24583C;
+  padding: 1.5rem;
+  border-radius: 12px;
+  margin-bottom: 2rem;
+  box-shadow: 0 4px 10px rgba(36, 88, 60, 0.15);
+  transition: transform 0.3s ease;
+}
+
+.category-box:hover {
+  transform: scale(1.02);
+}
+
+.category-box h3 {
+  color: #24583C;
+  margin-bottom: 0.5rem;
+}
+
+.category-box p {
+  font-size: 1rem;
+  color: #444;
+  margin-bottom: 1rem;
+}
+
+/* Product List */
+.category-box ul {
+  list-style-type: none;
+  padding-left: 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 1rem;
+}
+
+/* Product Item */
+.category-box li {
+  background-color: #F5F5F5;
+  border: 1px solid #DDD;
+  padding: 1rem;
+  border-radius: 8px;
+  box-shadow: 0 2px 5px rgba(36, 88, 60, 0.1);
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+.category-box li strong {
+  color: #24583C;
+  font-size: 1rem;
+}
+
+.category-box li em {
+  display: block;
+  font-size: 0.9rem;
+  color: #555;
+  margin-top: 0.2rem;
+}
+
+/* Add to Cart Button */
+.category-box li button {
+  margin-top: 0.7rem;
+  background-color: #24583C;
+  color: #F5E74E;
+  border: 2px solid #F5E74E;
+  padding: 0.5rem 1rem;
+  border-radius: 6px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+.category-box li button:hover {
+  background-color: #F5E74E;
+  color: #24583C;
+}
+
+/* ============================ */
+/*     Responsive Breakpoints   */
+/* ============================ */
+
+/* Tablets (≤1024px) */
+@media (max-width: 1024px) {
+  .category-container {
+    padding: 1.5rem;
+  }
+
+  .category-container h2 {
+    font-size: 1.8rem;
+  }
+
+  .category-box {
+    padding: 1.2rem;
+  }
+}
+
+/* Mobiles (≤768px) */
+@media (max-width: 768px) {
+  .category-container {
+    padding: 1rem;
+  }
+
+  .category-container h2 {
+    font-size: 1.6rem;
+  }
+
+  .category-box ul {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Extra Small Devices (≤480px) */
+@media (max-width: 480px) {
+  .category-container h2 {
+    font-size: 1.4rem;
+  }
+
+  .category-box h3 {
+    font-size: 1.1rem;
+  }
+
+  .category-box p,
+  .category-box li strong,
+  .category-box li em {
+    font-size: 0.9rem;
+  }
+
+  .category-box li button {
+    font-size: 0.85rem;
+    padding: 0.4rem 0.8rem;
+  }
+}

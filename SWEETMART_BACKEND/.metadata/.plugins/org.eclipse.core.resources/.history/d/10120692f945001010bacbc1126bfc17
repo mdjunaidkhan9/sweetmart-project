@@ -1,0 +1,210 @@
+package com.project.payment.service;
+
+import com.project.payment.dto.BillDTO;
+import com.project.payment.entity.Payment;
+import com.project.payment.feign.OrderBillClient;
+import com.project.payment.repository.PaymentRepository;
+import com.stripe.exception.StripeException;
+import com.stripe.model.PaymentIntent;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.mockito.*;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+
+import java.util.*;
+
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.Mockito.*;
+
+class PaymentServiceTest {
+
+    @Mock
+    private OrderBillClient orderBillClient;
+
+    @Mock
+    private PaymentRepository paymentRepository;
+
+    @InjectMocks
+    private PaymentService paymentService;
+
+    private BillDTO billDTO;
+    private Payment payment;
+
+    @BeforeEach
+    void setUp() {
+        MockitoAnnotations.openMocks(this);
+        billDTO = new BillDTO();
+        billDTO.setBillId(10L);
+        billDTO.setTotalAmount(200.0);
+        billDTO.setSweetOrderId(7L);
+
+        payment = new Payment("pi_123", "junaid", 10L, 200.0, "succeeded");
+    }
+
+    // --- processPayment ---
+    @Test
+    void processPayment_NullUsername() {
+        ResponseEntity<Map<String, Object>> resp = paymentService.processPayment(null);
+        assertEquals(HttpStatus.BAD_REQUEST, resp.getStatusCode());
+        assertTrue(resp.getBody().containsKey("error"));
+    }
+
+    @Test
+    void processPayment_EmptyUsername() {
+        ResponseEntity<Map<String, Object>> resp = paymentService.processPayment("   ");
+        assertEquals(HttpStatus.BAD_REQUEST, resp.getStatusCode());
+        assertTrue(resp.getBody().containsKey("error"));
+    }
+
+    @Test
+    void processPayment_NoBill() {
+        when(orderBillClient.getBillByUsername("junaid")).thenReturn(null);
+        ResponseEntity<Map<String, Object>> resp = paymentService.processPayment("junaid");
+        assertEquals(HttpStatus.NOT_FOUND, resp.getStatusCode());
+        assertTrue(resp.getBody().containsKey("error"));
+    }
+
+    @Test
+    void processPayment_StripeException() throws Exception {
+        when(orderBillClient.getBillByUsername("junaid")).thenReturn(billDTO);
+
+        // Mock static PaymentIntent.create to throw StripeException
+        try (MockedStatic<PaymentIntent> paymentIntentMock = mockStatic(PaymentIntent.class)) {
+            paymentIntentMock.when(() -> PaymentIntent.create(any())).thenThrow(new StripeException("Stripe error", null, null, 500, null));
+            ResponseEntity<Map<String, Object>> resp = paymentService.processPayment("junaid");
+            assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, resp.getStatusCode());
+            assertTrue(resp.getBody().containsKey("error"));
+        }
+    }
+
+    @Test
+    void processPayment_Success() throws Exception {
+        when(orderBillClient.getBillByUsername("junaid")).thenReturn(billDTO);
+
+        PaymentIntent fakeIntent = mock(PaymentIntent.class);
+        when(fakeIntent.getId()).thenReturn("pi_123");
+        when(fakeIntent.getStatus()).thenReturn("succeeded");
+        when(fakeIntent.getClientSecret()).thenReturn("secret_abc");
+
+        // Mock static PaymentIntent.create to return our fakeIntent
+        try (MockedStatic<PaymentIntent> paymentIntentMock = mockStatic(PaymentIntent.class)) {
+            paymentIntentMock.when(() -> PaymentIntent.create(any())).thenReturn(fakeIntent);
+
+            when(paymentRepository.save(any(Payment.class))).thenReturn(payment);
+
+            ResponseEntity<Map<String, Object>> resp = paymentService.processPayment("junaid");
+            assertEquals(HttpStatus.OK, resp.getStatusCode());
+            Map<String, Object> body = resp.getBody();
+            assertEquals("pi_123", body.get("paymentId"));
+            assertEquals("junaid", body.get("username"));
+            assertEquals(10L, body.get("billId"));
+            assertEquals(200.0, body.get("amount"));
+            assertEquals("succeeded", body.get("status"));
+            assertEquals("secret_abc", body.get("clientSecret"));
+        }
+    }
+
+    // --- getLatestPayment ---
+    @Test
+    void getLatestPayment_NullUsername() {
+        ResponseEntity<Map<String, Object>> resp = paymentService.getLatestPayment(null);
+        assertEquals(HttpStatus.BAD_REQUEST, resp.getStatusCode());
+        assertNull(resp.getBody());
+    }
+
+    @Test
+    void getLatestPayment_EmptyUsername() {
+        ResponseEntity<Map<String, Object>> resp = paymentService.getLatestPayment("   ");
+        assertEquals(HttpStatus.BAD_REQUEST, resp.getStatusCode());
+        assertNull(resp.getBody());
+    }
+
+    @Test
+    void getLatestPayment_NotFound() {
+        when(paymentRepository.findTopByUsernameOrderByPaymentIdDesc("junaid")).thenReturn(Optional.empty());
+        ResponseEntity<Map<String, Object>> resp = paymentService.getLatestPayment("junaid");
+        assertEquals(HttpStatus.NOT_FOUND, resp.getStatusCode());
+        assertNull(resp.getBody());
+    }
+
+    @Test
+    void getLatestPayment_Found() {
+        when(paymentRepository.findTopByUsernameOrderByPaymentIdDesc("junaid")).thenReturn(Optional.of(payment));
+        ResponseEntity<Map<String, Object>> resp = paymentService.getLatestPayment("junaid");
+        assertEquals(HttpStatus.OK, resp.getStatusCode());
+        assertEquals("pi_123", resp.getBody().get("paymentId"));
+    }
+
+    // --- updatePaymentStatus ---
+    @Test
+    void updatePaymentStatus_NullId() {
+        ResponseEntity<Payment> resp = paymentService.updatePaymentStatus(null);
+        assertEquals(HttpStatus.BAD_REQUEST, resp.getStatusCode());
+        assertNull(resp.getBody());
+    }
+
+    @Test
+    void updatePaymentStatus_EmptyId() {
+        ResponseEntity<Payment> resp = paymentService.updatePaymentStatus("   ");
+        assertEquals(HttpStatus.BAD_REQUEST, resp.getStatusCode());
+        assertNull(resp.getBody());
+    }
+
+    @Test
+    void updatePaymentStatus_NotFound() throws Exception {
+        // Mock static PaymentIntent.retrieve to return a fake intent
+        PaymentIntent fakeIntent = mock(PaymentIntent.class);
+        when(fakeIntent.getStatus()).thenReturn("processing");
+        try (MockedStatic<PaymentIntent> paymentIntentMock = mockStatic(PaymentIntent.class)) {
+            paymentIntentMock.when(() -> PaymentIntent.retrieve("pi_999")).thenReturn(fakeIntent);
+            when(paymentRepository.findById("pi_999")).thenReturn(Optional.empty());
+            ResponseEntity<Payment> resp = paymentService.updatePaymentStatus("pi_999");
+            assertEquals(HttpStatus.NOT_FOUND, resp.getStatusCode());
+            assertNull(resp.getBody());
+        }
+    }
+
+    @Test
+    void updatePaymentStatus_StripeException() throws Exception {
+        try (MockedStatic<PaymentIntent> paymentIntentMock = mockStatic(PaymentIntent.class)) {
+            paymentIntentMock.when(() -> PaymentIntent.retrieve("pi_123")).thenThrow(new StripeException("Stripe error", null, null, 500, null));
+            ResponseEntity<Payment> resp = paymentService.updatePaymentStatus("pi_123");
+            assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, resp.getStatusCode());
+            assertNull(resp.getBody());
+        }
+    }
+
+    @Test
+    void updatePaymentStatus_Success() throws Exception {
+        PaymentIntent fakeIntent = mock(PaymentIntent.class);
+        when(fakeIntent.getStatus()).thenReturn("succeeded");
+        try (MockedStatic<PaymentIntent> paymentIntentMock = mockStatic(PaymentIntent.class)) {
+            paymentIntentMock.when(() -> PaymentIntent.retrieve("pi_123")).thenReturn(fakeIntent);
+            when(paymentRepository.findById("pi_123")).thenReturn(Optional.of(payment));
+            when(paymentRepository.save(any(Payment.class))).thenReturn(payment);
+
+            ResponseEntity<Payment> resp = paymentService.updatePaymentStatus("pi_123");
+            assertEquals(HttpStatus.OK, resp.getStatusCode());
+            assertEquals(payment, resp.getBody());
+        }
+    }
+
+    // --- getAllPayments ---
+    @Test
+    void getAllPayments_Empty() {
+        when(paymentRepository.findAll()).thenReturn(Collections.emptyList());
+        ResponseEntity<List<Payment>> resp = paymentService.getAllPayments();
+        assertEquals(HttpStatus.NO_CONTENT, resp.getStatusCode());
+        assertTrue(resp.getBody().isEmpty());
+    }
+
+    @Test
+    void getAllPayments_Found() {
+        when(paymentRepository.findAll()).thenReturn(List.of(payment));
+        ResponseEntity<List<Payment>> resp = paymentService.getAllPayments();
+        assertEquals(HttpStatus.OK, resp.getStatusCode());
+        assertEquals(1, resp.getBody().size());
+        assertEquals(payment, resp.getBody().get(0));
+    }
+}

@@ -1,0 +1,111 @@
+package com.project.product.service;
+
+import java.util.List;
+
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Sort;
+import org.springframework.http.ResponseEntity;
+import org.springframework.stereotype.Service;
+
+import com.project.product.feign.CategoryClient;
+import com.project.product.model.CategoryEntityDTO;
+import com.project.product.model.ProductEntity;
+import com.project.product.repository.ProductRepository;
+
+
+@Service
+public class ProductService {
+    
+    @Autowired
+    private CategoryClient categoryClient;
+    
+    @Autowired
+    private ProductRepository productRepository;
+
+    /** Fetch all categories */
+    public List<CategoryEntityDTO> fetchAllCategories() {
+        List<CategoryEntityDTO> categories = categoryClient.getAllCategories();
+        if (categories.isEmpty()) {
+            throw new RuntimeException("No categories found.");
+        }
+        return categories;
+    }
+
+    /** Add product */
+    public ResponseEntity<ProductEntity> addProduct(ProductEntity productEntity) {
+        if (productEntity.getProductName() == null || productEntity.getProductCategory() == null) {
+            return ResponseEntity.badRequest().body(null);
+        }
+        ProductEntity addedProduct = productRepository.save(productEntity);
+        return ResponseEntity.ok(addedProduct);
+    }
+
+    /** Get all products */
+    public List<ProductEntity> allProducts() {
+        List<ProductEntity> products = productRepository.findAll();
+        if (products.isEmpty()) {
+            throw new RuntimeException("No products available.");
+        }
+        return products;
+    }
+
+    /** Get product by name */
+    public ProductEntity getProductByName(String name) {
+        return productRepository.findByProductName(name)
+                .orElseThrow(() -> new RuntimeException("Product not found with name: " + name));
+    }
+
+    /** Get all products sorted by price */
+    public List<ProductEntity> findAllBySort() {
+        List<ProductEntity> sortedProducts = productRepository.findAll(Sort.by("productPrice"));
+        if (sortedProducts.isEmpty()) {
+            throw new RuntimeException("No products available to sort.");
+        }
+        return sortedProducts;
+    }
+
+    /** Get all products sorted by name */
+    public List<ProductEntity> findAllBySortByName() {
+        List<ProductEntity> sortedProducts = productRepository.findAll(Sort.by("productName"));
+        if (sortedProducts.isEmpty()) {
+            throw new RuntimeException("No products available to sort.");
+        }
+        return sortedProducts;
+    }
+
+    /** Get products by category */
+    public List<ProductEntity> getProductsByCategory(String category) {
+        List<ProductEntity> products = productRepository.findByProductCategory(category);
+        if (products.isEmpty()) {
+            throw new RuntimeException("No products found in category: " + category);
+        }
+        return products;
+    }
+
+    /** Update product */
+    public ResponseEntity<ProductEntity> updateEntity(int productId, ProductEntity newProduct) {
+        return productRepository.findById(productId)
+                .map(existing -> {
+                    existing.setProductName(newProduct.getProductName());
+                    existing.setProductPrice(newProduct.getProductPrice());
+                    existing.setProductDescription(newProduct.getProductDescription());
+                    existing.setProductAvailable(newProduct.isProductAvailable());
+                    existing.setProductCategory(newProduct.getProductCategory());
+                    ProductEntity updated = productRepository.save(existing);
+                    return ResponseEntity.ok(updated);
+                })
+                .orElse(ResponseEntity.notFound().build());
+    }
+
+    /** Delete product */
+    public ResponseEntity<String> deleteProduct(int productId) {
+        if (!productRepository.existsById(productId)) {
+            return ResponseEntity.status(404).body("Product not found.");
+        }
+        productRepository.deleteById(productId);
+        return ResponseEntity.ok("Product with ID " + productId + " deleted successfully.");
+    }
+}
+
+

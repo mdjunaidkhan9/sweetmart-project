@@ -1,0 +1,93 @@
+package com.project.category.controller;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.project.category.entity.CategoryEntity;
+import com.project.category.service.CategoryService;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.mockito.*;
+import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
+import org.springframework.http.MediaType;
+import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.setup.MockMvcBuilders;
+
+import java.util.Collections;
+
+import static org.mockito.Mockito.*;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
+
+@WebMvcTest(CategoryController.class)
+class CategoryControllerTest {
+
+    @InjectMocks
+    private CategoryController categoryController;
+
+    @Mock
+    private CategoryService categoryService;
+
+    private MockMvc mockMvc;
+
+    private ObjectMapper objectMapper = new ObjectMapper();
+
+    @BeforeEach
+    void setup() {
+        MockitoAnnotations.openMocks(this);
+        mockMvc = MockMvcBuilders.standaloneSetup(categoryController).build();
+    }
+
+    @Test
+    void testAddCategory() throws Exception {
+        CategoryEntity input = new CategoryEntity();
+        input.setCategoryName("Milk");
+        input.setCategoryDescription("Milk based");
+
+        when(categoryService.addCategory(any())).thenReturn(ResponseEntity.ok(input));
+
+        mockMvc.perform(post("/admin/add")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(input)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.categoryName").value("Milk"));
+    }
+
+    @Test
+    void testGetAllCategories() throws Exception {
+        when(categoryService.getAllCategories()).thenReturn(ResponseEntity.ok(Collections.emptyList()));
+
+        mockMvc.perform(get("/admin/all"))
+                .andExpect(status().isOk());
+    }
+
+    @Test
+    void testUpdateCategory() throws Exception {
+        CategoryEntity input = new CategoryEntity();
+        input.setCategoryName("Updated");
+        input.setCategoryDescription("Updated Desc");
+
+        when(categoryService.updateCategory(eq(1), any())).thenReturn(ResponseEntity.ok(input));
+
+        mockMvc.perform(put("/admin/update/1")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(input)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.categoryName").value("Updated"));
+    }
+
+    @Test
+    void testDeleteCategory() throws Exception {
+        when(categoryService.deleteCategory(1)).thenReturn(ResponseEntity.ok("Category deleted with id: 1"));
+
+        mockMvc.perform(delete("/admin/delete/1"))
+                .andExpect(status().isOk())
+                .andExpect(content().string("Category deleted with id: 1"));
+    }
+
+    @Test
+    void testGetAllCategoriesWithProducts() throws Exception {
+        when(categoryService.getAllCategoriesWithProducts()).thenReturn(ResponseEntity.ok(Collections.emptyList()));
+
+        mockMvc.perform(get("/all-with-products"))
+                .andExpect(status().isOk());
+    }
+}

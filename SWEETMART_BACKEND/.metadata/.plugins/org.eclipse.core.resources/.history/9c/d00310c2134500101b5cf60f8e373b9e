@@ -1,0 +1,108 @@
+package com.project.payment.service;
+
+import com.project.payment.dto.BillDTO;
+import com.project.payment.entity.PaymentEntity;
+import com.project.payment.exception.ResourceNotFoundException;
+import com.project.payment.feign.OrderBillClient;
+import com.project.payment.repository.PaymentRepository;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
+
+import java.time.LocalDateTime;
+import java.util.List;
+import java.util.Optional;
+
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.Mockito.*;
+
+@ExtendWith(MockitoExtension.class)
+class PaymentServiceTest {
+
+    @Mock
+    private PaymentRepository paymentRepository;
+
+    @Mock
+    private OrderBillClient billClient;
+
+    @InjectMocks
+    private PaymentService paymentService;
+
+    @Test
+    void testMakePayment_Success() {
+        Long billId = 1L;
+        Long sweetOrderId = 101L;
+        BillDTO billDTO = new BillDTO(billId, sweetOrderId, "Junaid", 100.0, LocalDateTime.now());
+        PaymentEntity payment = new PaymentEntity(billId, "Junaid", 100.0, "SUCCESS", LocalDateTime.now());
+
+        when(billClient.getBillById(billId)).thenReturn(billDTO);
+        when(paymentRepository.save(any(PaymentEntity.class))).thenReturn(payment);
+
+        PaymentEntity result = paymentService.makePayment(billId);
+
+        assertNotNull(result);
+        assertEquals("SUCCESS", result.getStatus());
+        assertEquals("Junaid", result.getUsername());
+        assertEquals(100.0, result.getAmount());
+        verify(paymentRepository, times(1)).save(any(PaymentEntity.class));
+    }
+
+    @Test
+    void testMakePayment_BillNotFound() {
+        Long billId = 2L;
+        when(billClient.getBillById(billId)).thenReturn(null);
+
+        assertThrows(ResourceNotFoundException.class, () -> paymentService.makePayment(billId));
+    }
+
+    @Test
+    void testGetAllPayments() {
+        List<PaymentEntity> payments = List.of(new PaymentEntity(1L, "Junaid", 100.0, "SUCCESS", LocalDateTime.now()));
+        when(paymentRepository.findAll()).thenReturn(payments);
+
+        List<PaymentEntity> result = paymentService.getAllPayments();
+        assertFalse(result.isEmpty());
+        assertEquals(1, result.size());
+        assertEquals("Junaid", result.get(0).getUsername());
+    }
+
+    @Test
+    void testGetPaymentById_Success() {
+        Long paymentId = 1L;
+        PaymentEntity payment = new PaymentEntity(1L, "Junaid", 100.0, "SUCCESS", LocalDateTime.now());
+        when(paymentRepository.findById(paymentId)).thenReturn(Optional.of(payment));
+
+        PaymentEntity result = paymentService.getPaymentById(paymentId);
+        assertNotNull(result);
+        assertEquals(paymentId, result.getBillId());
+        assertEquals("Junaid", result.getUsername());
+    }
+
+    @Test
+    void testGetPaymentById_NotFound() {
+        Long paymentId = 2L;
+        when(paymentRepository.findById(paymentId)).thenReturn(Optional.empty());
+
+        assertThrows(ResourceNotFoundException.class, () -> paymentService.getPaymentById(paymentId));
+    }
+
+    @Test
+    void testDeletePayment_Success() {
+        Long paymentId = 1L;
+        when(paymentRepository.existsById(paymentId)).thenReturn(true);
+        doNothing().when(paymentRepository).deleteById(paymentId);
+
+        assertDoesNotThrow(() -> paymentService.deletePayment(paymentId));
+        verify(paymentRepository, times(1)).deleteById(paymentId);
+    }
+
+    @Test
+    void testDeletePayment_NotFound() {
+        Long paymentId = 2L;
+        when(paymentRepository.existsById(paymentId)).thenReturn(false);
+
+        assertThrows(ResourceNotFoundException.class, () -> paymentService.deletePayment(paymentId));
+    }
+}

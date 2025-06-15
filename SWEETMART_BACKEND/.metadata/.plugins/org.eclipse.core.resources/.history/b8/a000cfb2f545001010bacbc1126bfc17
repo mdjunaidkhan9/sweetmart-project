@@ -1,0 +1,91 @@
+package com.project.sweetorder.service;
+
+import com.project.sweetorder.feign.CartFeignClient;
+import com.project.sweetorder.model.CartItemDTO;
+import com.project.sweetorder.model.OrderItem;
+import com.project.sweetorder.model.SweetOrder;
+import com.project.sweetorder.repository.SweetOrderRepository;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
+
+@Service
+public class SweetOrderService {
+
+    @Autowired
+    private SweetOrderRepository orderRepo;
+
+    @Autowired
+    private CartFeignClient cartClient;
+
+    public SweetOrder placeOrder(String username) {
+        List<CartItemDTO> cartItems = cartClient.getCartByUsername(username);
+
+        if (cartItems.isEmpty()) {
+            throw new RuntimeException("Cart is empty");
+        }
+
+        double totalAmount = 0;
+        List<OrderItem> orderItems = new ArrayList<>();
+
+        for (CartItemDTO cartItem : cartItems) {
+            OrderItem orderItem = new OrderItem();
+            orderItem.setProductId(Long.valueOf(cartItem.getProductId()));
+            orderItem.setProductName(cartItem.getProductName());
+            orderItem.setQuantity(cartItem.getQuantity());
+            orderItem.setPrice(cartItem.getProductPrice());
+
+            totalAmount += cartItem.getProductPrice() * cartItem.getQuantity();
+            orderItems.add(orderItem);
+        }
+
+        SweetOrder order = new SweetOrder();
+        order.setUsername(username);
+        order.setOrderDate(LocalDateTime.now());
+        order.setTotalAmount(totalAmount);
+
+        for (OrderItem item : orderItems) {
+            item.setOrder(order);
+        }
+        order.setOrderItems(orderItems);
+
+        SweetOrder savedOrder = orderRepo.save(order);
+        cartClient.clearCart(username);
+
+        return savedOrder;
+    }
+
+    public List<SweetOrder> getOrders(String username) {
+        return orderRepo.findByUsername(username);
+    }
+
+    // Update all orders of the user with the data from updatedOrderData object
+    public List<SweetOrder> updateOrders(String username, SweetOrder updatedOrderData) {
+        List<SweetOrder> userOrders = orderRepo.findByUsername(username);
+        if (userOrders.isEmpty()) {
+            throw new RuntimeException("No orders found for user: " + username);
+        }
+
+        for (SweetOrder order : userOrders) {
+            // For example, only updating totalAmount and orderDate for all orders — can adjust as needed
+            order.setTotalAmount(updatedOrderData.getTotalAmount());
+            order.setOrderDate(LocalDateTime.now());
+        }
+
+        return orderRepo.saveAll(userOrders);
+    }
+
+    public void deleteOrdersByUsername(String username) {
+        List<SweetOrder> userOrders = orderRepo.findByUsername(username);
+        if (userOrders.isEmpty()) {
+            throw new RuntimeException("No orders found for user: " + username);
+        }
+        orderRepo.deleteAll(userOrders);
+    }
+    public List<SweetOrder> getAllOrders() {
+        return orderRepo.findAll();
+    }
+}

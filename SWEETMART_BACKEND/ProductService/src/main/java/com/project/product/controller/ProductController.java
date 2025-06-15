@@ -1,0 +1,63 @@
+package com.project.product.controller;
+
+import java.util.List;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RestController;
+
+import com.project.product.model.CategoryEntityDTO;
+import com.project.product.model.ProductEntity;
+import com.project.product.service.ProductService;
+
+@RestController
+public class ProductController {
+		@Autowired
+		private ProductService productService;
+		
+		
+		@GetMapping("/getallcategory")
+		public List<CategoryEntityDTO> getall(){
+			return productService.fetchAllCategories();
+		}
+		@PostMapping("/admin/addproduct")
+		public ResponseEntity<ProductEntity> addproduct(@RequestBody ProductEntity productEntity) {
+			return productService.addProduct(productEntity);
+		}
+		@GetMapping("/allproduct")
+		public List<ProductEntity> allproduct(){
+			return productService.allProducts();
+		}
+		@GetMapping("/productbyname/{name}")
+		public ProductEntity productbyname(@PathVariable String name) {
+			return productService.getProductByName(name);
+		}
+		@GetMapping("/allproduct/sortbyprice")
+		public List<ProductEntity> allproductsort(){
+			return productService.findAllBySort();
+		}
+		@GetMapping("/allproduct/sortbyname")
+		public List<ProductEntity> allproductsortbyname(){
+			return productService.findAllBySortByName();
+		}
+		@GetMapping("/productbycategory/{category}")
+		public List<ProductEntity> productbycategory(@PathVariable String category) {
+			return productService.getProductsByCategory(category);
+		}
+		
+		@PutMapping("/admin/update/{id}")
+		public ResponseEntity<ProductEntity> updateuser(@PathVariable("id") int id,@RequestBody ProductEntity productEntity){
+			return productService.updateEntity(id, productEntity);
+		}
+		
+		@DeleteMapping("/admin/delete/{id}")
+		public ResponseEntity<String> deleteuser(@PathVariable("id") int id){
+			return productService.deleteProduct(id);
+		}
+}

@@ -1,0 +1,171 @@
+/* =========================== */
+/*        Global Reset         */
+/* =========================== */
+body {
+  margin: 0;
+  padding: 0;
+  overflow-x: hidden; /* prevent right-side scroll */
+}
+
+/* =========================== */
+/*       Page Container        */
+/* =========================== */
+.users-page {
+  background-color: #F5F5F5;
+  padding: 2rem;
+  min-height: 100vh;
+  color: #24583C;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  overflow-x: hidden;
+}
+
+/* =========================== */
+/*          Heading            */
+/* =========================== */
+.users-heading {
+  text-align: center;
+  font-size: 2rem;
+  color: #24583C;
+  margin-bottom: 1.5rem;
+}
+
+/* =========================== */
+/*        Filter Buttons       */
+/* =========================== */
+.role-filter {
+  display: flex;
+  justify-content: center;
+  gap: 1rem;
+  margin-bottom: 2rem;
+  flex-wrap: wrap;
+}
+
+.filter-btn {
+  background-color: #FFFFFF;
+  color: #24583C;
+  border: 2px solid #24583C;
+  padding: 0.5rem 1rem;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: bold;
+  transition: all 0.3s ease;
+}
+
+.filter-btn:hover {
+  background-color: #B6B7F4;
+}
+
+.filter-btn.active {
+  background-color: #24583C;
+  color: #F5E74E;
+  border-color: #F5E74E;
+}
+
+/* =========================== */
+/*        User Grid            */
+/* =========================== */
+.users-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 1.5rem;
+  margin-top: 1rem;
+}
+
+/* =========================== */
+/*        User Card            */
+/* =========================== */
+.user-card {
+  background-color: #FFFFFF;
+  border: 2px solid #B6B7F4;
+  border-radius: 10px;
+  padding: 1.5rem;
+  box-shadow: 0 4px 8px rgba(36, 88, 60, 0.1);
+  transition: transform 0.2s ease, box-shadow 0.3s ease;
+  word-wrap: break-word;
+}
+
+.user-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 8px 12px rgba(36, 88, 60, 0.2);
+}
+
+.user-name {
+  font-size: 1.3rem;
+  font-weight: bold;
+  color: #24583C;
+  margin-bottom: 0.5rem;
+}
+
+.user-email {
+  color: #555;
+  margin-bottom: 0.8rem;
+  word-wrap: break-word;
+}
+
+/* =========================== */
+/*         Role Badge          */
+/* =========================== */
+.user-role {
+  display: inline-block;
+  padding: 0.3rem 0.7rem;
+  border-radius: 20px;
+  font-size: 0.85rem;
+  font-weight: bold;
+}
+
+.user-role.user {
+  background-color: #F5E74E;
+  color: #24583C;
+}
+
+.user-role.admin {
+  background-color: #B6B7F4;
+  color: #24583C;
+}
+
+/* =========================== */
+/*        No Users Text        */
+/* =========================== */
+.no-users {
+  text-align: center;
+  color: #888;
+  font-style: italic;
+  font-size: 1.1rem;
+}
+
+/* =========================== */
+/*         Responsive          */
+/* =========================== */
+@media (max-width: 768px) {
+  .users-page {
+    padding: 1rem;
+  }
+
+  .users-heading {
+    font-size: 1.5rem;
+  }
+
+  .user-name {
+    font-size: 1.1rem;
+  }
+
+  .user-card {
+    padding: 1rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .filter-btn {
+    padding: 0.4rem 0.8rem;
+    font-size: 0.9rem;
+  }
+
+  .user-email {
+    font-size: 0.85rem;
+  }
+
+  .user-role {
+    font-size: 0.75rem;
+    padding: 0.25rem 0.6rem;
+  }
+}

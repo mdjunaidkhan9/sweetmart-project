@@ -1,0 +1,100 @@
+package com.project.cart.service;
+
+import com.project.cart.feign.ProductFeignClient;
+import com.project.cart.model.CartItem;
+import com.project.cart.model.ProductEntity;
+import com.project.cart.repository.CartItemRepository;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.stereotype.Service;
+
+import java.util.List;
+
+@Service
+public class CartService {
+
+    @Autowired
+    private CartItemRepository cartRepository;
+
+    @Autowired
+    private ProductFeignClient productClient;
+
+    public ResponseEntity<CartItem> addToCart(String username, String productName, Integer quantity) {
+        if (username == null || username.trim().isEmpty() ||
+            productName == null || productName.trim().isEmpty() ||
+            quantity == null || quantity <= 0) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(null);
+        }
+
+        CartItem existing = cartRepository.findByUsernameAndProductName(username, productName);
+        if (existing != null) {
+            existing.setQuantity(existing.getQuantity() + quantity);
+            return ResponseEntity.ok(cartRepository.save(existing));
+        }
+
+        ProductEntity product = productClient.getProductByName(productName);
+        if (product == null) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
+        }
+
+        CartItem newItem = new CartItem();
+        newItem.setUsername(username);
+        newItem.setProductName(product.getProductName());
+        newItem.setProductPrice(product.getProductPrice());
+        newItem.setProductId(product.getProductId());
+        newItem.setQuantity(quantity);
+
+        return ResponseEntity.status(HttpStatus.CREATED).body(cartRepository.save(newItem));
+    }
+
+    public ResponseEntity<List<CartItem>> getCartByUsername(String username) {
+        if (username == null || username.trim().isEmpty()) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(null);
+        }
+        List<CartItem> items = cartRepository.findByUsername(username);
+        if (items == null || items.isEmpty()) {
+            return ResponseEntity.status(HttpStatus.NO_CONTENT).body(items);
+        }
+        return ResponseEntity.ok(items);
+    }
+
+    public ResponseEntity<CartItem> updateQuantity(String username, String productName, Integer quantity) {
+        if (username == null || username.trim().isEmpty() ||
+            productName == null || productName.trim().isEmpty() ||
+            quantity == null || quantity <= 0) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(null);
+        }
+        CartItem existing = cartRepository.findByUsernameAndProductName(username, productName);
+        if (existing == null) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
+        }
+        existing.setQuantity(quantity);
+        return ResponseEntity.ok(cartRepository.save(existing));
+    }
+
+    public ResponseEntity<String> removeFromCart(String username, String productName) {
+        if (username == null || username.trim().isEmpty() ||
+            productName == null || productName.trim().isEmpty()) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Username and productName required");
+        }
+        CartItem existing = cartRepository.findByUsernameAndProductName(username, productName);
+        if (existing == null) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Item not found in cart");
+        }
+        cartRepository.delete(existing);
+        return ResponseEntity.ok("Item removed from cart");
+    }
+
+    public ResponseEntity<String> clearCart(String username) {
+        if (username == null || username.trim().isEmpty()) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Username required");
+        }
+        List<CartItem> items = cartRepository.findByUsername(username);
+        if (items == null || items.isEmpty()) {
+            return ResponseEntity.status(HttpStatus.NO_CONTENT).body("Cart already empty");
+        }
+        cartRepository.deleteAll(items);
+        return ResponseEntity.ok("Cart cleared");
+    }
+}

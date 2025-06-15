@@ -1,0 +1,138 @@
+package com.project.payment.service;
+
+import com.project.payment.dto.BillDTO;
+import com.project.payment.entity.Payment;
+import com.project.payment.feign.OrderBillClient;
+import com.project.payment.repository.PaymentRepository;
+import com.stripe.Stripe;
+import com.stripe.exception.StripeException;
+import com.stripe.model.PaymentIntent;
+import com.stripe.param.PaymentIntentCreateParams;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.stereotype.Service;
+
+import java.util.*;
+
+@Service
+public class PaymentService {
+
+    @Value("${stripe.secret.key}")
+    private String stripeSecretKey;
+
+    private final OrderBillClient orderBillClient;
+    private final PaymentRepository paymentRepository;
+
+    public PaymentService(OrderBillClient orderBillClient, PaymentRepository paymentRepository) {
+        this.orderBillClient = orderBillClient;
+        this.paymentRepository = paymentRepository;
+    }
+
+    public ResponseEntity<Map<String, Object>> processPayment(String username) {
+        try {
+            if (username == null || username.trim().isEmpty()) {
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(Map.of("error", "Username is required"));
+            }
+            Stripe.apiKey = stripeSecretKey;
+
+            BillDTO bill = orderBillClient.getBillByUsername(username);
+            if (bill == null) {
+                return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of("error", "No bill found for username: " + username));
+            }
+
+            PaymentIntentCreateParams params = PaymentIntentCreateParams.builder()
+                    .setAmount((long) (bill.getTotalAmount() * 100))
+                    .setCurrency("usd")
+                    .setDescription("Payment for SweetOrder ID: " + bill.getSweetOrderId())
+                    .setAutomaticPaymentMethods(
+                            PaymentIntentCreateParams.AutomaticPaymentMethods.builder()
+                                    .setEnabled(true)
+                                    .build()
+                    )
+                    .build();
+
+            PaymentIntent paymentIntent = PaymentIntent.create(params);
+
+            Payment payment = new Payment(
+                    paymentIntent.getId(),
+                    username,
+                    bill.getBillId(),
+                    bill.getTotalAmount(),
+                    paymentIntent.getStatus()
+            );
+
+            paymentRepository.save(payment);
+
+            Map<String, Object> response = new HashMap<>();
+            response.put("paymentId", paymentIntent.getId());
+            response.put("username", username);
+            response.put("billId", bill.getBillId());
+            response.put("amount", bill.getTotalAmount());
+            response.put("status", paymentIntent.getStatus());
+            response.put("clientSecret", paymentIntent.getClientSecret());
+
+            return ResponseEntity.ok(response);
+        } catch (StripeException e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(Map.of("error", e.getMessage()));
+        }
+    }
+
+    public ResponseEntity<Map<String, Object>> getLatestPayment(String username) {
+        if (username == null || username.trim().isEmpty()) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(null);
+        }
+        Optional<Payment> paymentOpt = paymentRepository.findTopByUsernameOrderByPaymentIdDesc(username);
+        if (paymentOpt.isEmpty()) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
+        }
+        Payment payment = paymentOpt.get();
+        Map<String, Object> response = Map.of(
+                "paymentId", payment.getPaymentId(),
+                "username", payment.getUsername(),
+                "billId", payment.getBillId(),
+                "amount", payment.getAmount(),
+                "status", payment.getStatus()
+        );
+        return ResponseEntity.ok(response);
+    }
+
+    public ResponseEntity<Payment> updatePaymentStatus(String paymentId) {
+        try {
+            if (paymentId == null || paymentId.trim().isEmpty()) {
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(null);
+            }
+            Stripe.apiKey = stripeSecretKey;
+            PaymentIntent intent = PaymentIntent.retrieve(paymentId);
+            Payment payment = paymentRepository.findById(paymentId).orElse(null);
+
+            if (payment != null) {
+                payment.setStatus(intent.getStatus());
+                Payment updated = paymentRepository.save(payment);
+                return ResponseEntity.ok(updated);
+            }
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
+        } catch (StripeException e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
+        }
+    }
+
+    public ResponseEntity<List<Payment>> getAllPayments() {
+        List<Payment> payments = paymentRepository.findAll();
+        if (payments == null || payments.isEmpty()) {
+            return ResponseEntity.status(HttpStatus.NO_CONTENT).body(payments);
+        }
+        return ResponseEntity.ok(payments);
+    }
+    public ResponseEntity<List<Payment>> getAllPaymentsByUser(String username) {
+        if (username == null || username.trim().isEmpty()) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(null);
+        }
+        List<Payment> payments = paymentRepository.findByUsernameOrderByPaymentIdDesc(username);
+        if (payments == null || payments.isEmpty()) {
+            return ResponseEntity.status(HttpStatus.NO_CONTENT).body(payments);
+        }
+        return ResponseEntity.ok(payments);
+    }
+
+}

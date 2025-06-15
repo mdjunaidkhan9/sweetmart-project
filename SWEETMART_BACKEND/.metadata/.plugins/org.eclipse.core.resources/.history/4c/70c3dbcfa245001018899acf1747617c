@@ -1,0 +1,42 @@
+package com.project.category.controller;
+
+import com.project.category.entity.*;
+//import com.project.category.model.CategoryWithProductsDTO;
+import com.project.category.service.CategoryService;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
+
+@RestController
+//@RequestMapping("/category")
+public class CategoryController {
+
+    @Autowired
+    private CategoryService categoryService;
+
+    @PostMapping("/admin/add")
+    public CategoryEntity addCategory(@RequestBody CategoryEntity category) {
+        return categoryService.addCategory(category);
+    }
+
+    @GetMapping("/admin/all")
+    public List<CategoryEntity> getAllCategories() {
+        return categoryService.getAllCategories();
+    }
+
+    @GetMapping("/all-with-products")
+    public List<CategoryWithProductsDTO> getAllCategoriesWithProducts() {
+        return categoryService.getAllCategoriesWithProducts();
+    }
+    @PutMapping("/admin/update/{id}")
+    public CategoryEntity updateCategory(@PathVariable int id, @RequestBody CategoryEntity updatedCategory) {
+        return categoryService.updateCategory(id, updatedCategory);
+    }
+
+    @DeleteMapping("/admin/delete/{id}")
+    public String deleteCategory(@PathVariable int id) {
+        return categoryService.deleteCategory(id);
+    }
+
+}

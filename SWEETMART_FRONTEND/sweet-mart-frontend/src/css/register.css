@@ -1,0 +1,137 @@
+/* ========================================= */
+/*     Art Deco Elegance - Register Styling  */
+/* ========================================= */
+
+/* Outer Container */
+.register-container {
+  min-height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background-color: #F5F5F5; /* Wild Sand */
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  color: #24583C;
+  padding: 2rem;
+}
+
+/* Form Wrapper */
+.register-form {
+  background-color: #FFFFFF;
+  padding: 2.5rem 2rem;
+  border-radius: 12px;
+  box-shadow: 0 0 15px rgba(36, 88, 60, 0.15);
+  max-width: 450px;
+  width: 100%;
+}
+
+/* Heading */
+.register-form h2 {
+  font-size: 1.8rem;
+  color: #24583C;
+  margin-bottom: 1.5rem;
+  text-align: center;
+  border-bottom: 2px solid #F5E74E;
+  padding-bottom: 0.5rem;
+}
+
+/* Input Fields */
+.register-form input[type="text"],
+.register-form input[type="password"],
+.register-form input[type="email"] {
+  width: 100%;
+  padding: 0.75rem;
+  margin-bottom: 1rem;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  font-size: 1rem;
+}
+
+/* Button Styling */
+.register-form button {
+  width: 100%;
+  padding: 0.75rem;
+  background-color: #24583C;
+  color: #F5E74E;
+  border: 2px solid #F5E74E;
+  border-radius: 6px;
+  font-weight: bold;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+.register-form button:hover {
+  background-color: #F5E74E;
+  color: #24583C;
+}
+
+/* Login Link */
+.login-link {
+  margin-top: 1rem;
+  font-size: 0.95rem;
+  text-align: center;
+}
+
+.login-link a {
+  color: #24583C;
+  font-weight: bold;
+  text-decoration: none;
+  border-bottom: 1px dashed #F5E74E;
+  padding-bottom: 2px;
+  transition: color 0.3s ease;
+}
+
+.login-link a:hover {
+  color: #B6B7F4; /* Perano */
+}
+
+/* Error Text */
+.error {
+  color: red;
+  font-size: 0.85rem;
+  margin-top: -10px;
+  margin-bottom: 10px;
+}
+
+/* ======================== */
+/*     Responsive Styles    */
+/* ======================== */
+
+/* Tablet: 768px and down */
+@media (max-width: 768px) {
+  .register-form {
+    padding: 2rem 1.5rem;
+    max-width: 380px;
+  }
+
+  .register-form h2 {
+    font-size: 1.6rem;
+  }
+}
+
+/* Mobile: 480px and down */
+@media (max-width: 480px) {
+  .register-container {
+    padding: 1rem;
+  }
+
+  .register-form {
+    padding: 1.5rem 1rem;
+    max-width: 100%;
+    border-radius: 10px;
+  }
+
+  .register-form h2 {
+    font-size: 1.4rem;
+  }
+
+  .register-form input,
+  .register-form button {
+    font-size: 0.95rem;
+    padding: 0.65rem;
+  }
+
+  .login-link {
+    font-size: 0.9rem;
+  }
+}

@@ -1,0 +1,15 @@
+package com.project.orderbill.feign;
+
+
+import com.project.orderbill.dto.*;
+
+import org.springframework.cloud.openfeign.FeignClient;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import java.util.*;
+@FeignClient(name = "SWEETORDERSERVICE")
+public interface SweetOrderClient {
+
+	@GetMapping("/user/{username}")
+	List<SweetOrderDTO> getOrders(@PathVariable String username); // Assuming this returns latest
+}

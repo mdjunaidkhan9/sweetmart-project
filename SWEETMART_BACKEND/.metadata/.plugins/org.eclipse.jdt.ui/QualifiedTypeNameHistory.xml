@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<qualifiedTypeNameHistroy>
+    <fullyQualifiedTypeName name="com.project.cart.repository.CartItemRepository"/>
+    <fullyQualifiedTypeName name="com.project.cart.feign.ProductFeignClient"/>
+    <fullyQualifiedTypeName name="org.springframework.stereotype.Repository"/>
+    <fullyQualifiedTypeName name="com.project.category.feign.ProductClient"/>
+    <fullyQualifiedTypeName name="com.project.sweetorder.model.SweetItem"/>
+    <fullyQualifiedTypeName name="com.project.sweetorder.model.CartItemDTO"/>
+    <fullyQualifiedTypeName name="com.project.sweetorder.controller.SweetOrderController"/>
+    <fullyQualifiedTypeName name="com.project.sweetorder.service.SweetOrderService"/>
+    <fullyQualifiedTypeName name="com.project.sweetorder.model.SweetOrder"/>
+    <fullyQualifiedTypeName name="java.lang.Long"/>
+    <fullyQualifiedTypeName name="com.project.orderbill.feign.SweetOrderClient"/>
+    <fullyQualifiedTypeName name="com.project.orderbill.model.SweetOrderDTO"/>
+    <fullyQualifiedTypeName name="org.springframework.cloud.openfeign.EnableFeignClients"/>
+    <fullyQualifiedTypeName name="com.sun.tools.javac.resources.compiler"/>
+    <fullyQualifiedTypeName name="org.springframework.cloud.client.discovery.EnableDiscoveryClient"/>
+    <fullyQualifiedTypeName name="com.project.auth.controller.AuthController"/>
+    <fullyQualifiedTypeName name="com.project.auth.repo.UserRepository"/>
+    <fullyQualifiedTypeName name="org.springframework.security.crypto.password.PasswordEncoder"/>
+    <fullyQualifiedTypeName name="com.project.auth.service.AuthService"/>
+    <fullyQualifiedTypeName name="java.util.Optional"/>
+    <fullyQualifiedTypeName name="com.project.customer.model.Customer"/>
+    <fullyQualifiedTypeName name="com.project.auth.service.JwtUtil"/>
+</qualifiedTypeNameHistroy>

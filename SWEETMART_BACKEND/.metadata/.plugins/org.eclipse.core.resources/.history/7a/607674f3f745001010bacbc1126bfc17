@@ -1,0 +1,91 @@
+package com.project.payment.service;
+
+import com.project.payment.dto.BillDTO;
+import com.project.payment.entity.Payment;
+import com.project.payment.feign.OrderBillClient;
+import com.project.payment.repository.PaymentRepository;
+import com.stripe.Stripe;
+import com.stripe.exception.StripeException;
+import com.stripe.model.PaymentIntent;
+import com.stripe.param.PaymentIntentCreateParams;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Service;
+
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Optional;
+
+@Service
+public class PaymentService {
+
+    @Value("${stripe.secret.key}")
+    private String stripeSecretKey;
+
+    private final OrderBillClient orderBillClient;
+    private final PaymentRepository paymentRepository;
+
+    public PaymentService(OrderBillClient orderBillClient, PaymentRepository paymentRepository) {
+        this.orderBillClient = orderBillClient;
+        this.paymentRepository = paymentRepository;
+    }
+
+    public Map<String, Object> processPayment(String username) throws StripeException {
+        Stripe.apiKey = stripeSecretKey;
+
+        BillDTO bill = orderBillClient.getBillByUsername(username);
+        if (bill == null) {
+            throw new RuntimeException("No bill found for username: " + username);
+        }
+
+        PaymentIntentCreateParams params = PaymentIntentCreateParams.builder()
+                .setAmount((long) (bill.getTotalAmount() * 100)) // Stripe expects amount in cents
+                .setCurrency("usd")  // Adjust currency as needed
+                .setDescription("Payment for SweetOrder ID: " + bill.getSweetOrderId())
+                .setAutomaticPaymentMethods(
+                    PaymentIntentCreateParams.AutomaticPaymentMethods.builder()
+                    .setEnabled(true)
+                    .build()
+                )
+                .build();
+
+        PaymentIntent paymentIntent = PaymentIntent.create(params);
+
+        Payment payment = new Payment(
+                paymentIntent.getId(),
+                username,
+                bill.getBillId(),
+                bill.getTotalAmount(),
+                paymentIntent.getStatus()
+        );
+
+        paymentRepository.save(payment);
+
+        // Return payment info + clientSecret for frontend payment confirmation
+        Map<String, Object> response = new HashMap<>();
+        response.put("paymentId", paymentIntent.getId());
+        response.put("username", username);
+        response.put("billId", bill.getBillId());
+        response.put("amount", bill.getTotalAmount());
+        response.put("status", paymentIntent.getStatus());
+        response.put("clientSecret", paymentIntent.getClientSecret());
+
+        return response;
+    }
+
+    public Payment getLatestPayment(String username) {
+        Optional<Payment> payment = paymentRepository.findTopByUsernameOrderByPaymentIdDesc(username);
+        return payment.orElse(null);
+    }
+    public Payment updatePaymentStatus(String paymentId) throws StripeException {
+        Stripe.apiKey = stripeSecretKey;
+        PaymentIntent intent = PaymentIntent.retrieve(paymentId);
+        Payment payment = paymentRepository.findById(paymentId).orElse(null);
+
+        if (payment != null) {
+            payment.setStatus(intent.getStatus());
+            return paymentRepository.save(payment);
+        }
+        return null;
+    }
+
+}

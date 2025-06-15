@@ -1,0 +1,177 @@
+/* ============================= */
+/*        BILL.JSX STYLING      */
+/* ============================= */
+
+.bill-container {
+  max-width: 700px;
+  margin: 2rem auto;
+  background: #ffffff;
+  padding: 2rem;
+  border-radius: 12px;
+  box-shadow: 0 6px 16px rgba(36, 88, 60, 0.15);
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  color: #24583C;
+}
+
+.bill-container h2 {
+  text-align: center;
+  margin-bottom: 1.5rem;
+  color: #24583C;
+}
+
+.bill-card {
+  background-color: #f5fdf5;
+  border-left: 6px solid #24583C;
+  padding: 1rem 1.5rem;
+  border-radius: 10px;
+  margin-bottom: 1.5rem;
+}
+
+.bill-card p {
+  margin: 0.4rem 0;
+  font-size: 0.95rem;
+}
+
+.pay-button,
+.payment-form button {
+  background-color: #f5e74e;
+  color: #24583C;
+  font-weight: bold;
+  padding: 12px 20px;
+  border: 2px solid #24583C;
+  border-radius: 10px;
+  cursor: pointer;
+  margin-top: 1rem;
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+.pay-button:hover,
+.payment-form button:hover {
+  background-color: #24583C;
+  color: #f5e74e;
+}
+
+.payment-form {
+  margin-top: 1.5rem;
+  padding: 1rem;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  background-color: #fafafa;
+}
+
+/* ============================= */
+/*       MYBILLS.JSX STYLING     */
+/* ============================= */
+
+.orders-container {
+  max-width: 800px;
+  margin: 2rem auto;
+  padding: 2rem;
+  background: #ffffff;
+  border-radius: 12px;
+  box-shadow: 0 6px 16px rgba(36, 88, 60, 0.1);
+}
+
+.orders-container h2 {
+  text-align: center;
+  color: #24583C;
+  margin-bottom: 1.5rem;
+}
+
+.order-card {
+  background-color: #f5fdf5;
+  border-left: 5px solid #24583C;
+  border-radius: 10px;
+  padding: 1rem;
+  margin-bottom: 1rem;
+}
+
+.order-header {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  font-weight: bold;
+  margin-bottom: 0.5rem;
+  color: #24583C;
+}
+
+.order-card span {
+  display: block;
+  margin: 0.2rem 0;
+  font-size: 0.95rem;
+}
+
+/* ============================= */
+/*        RESPONSIVE RULES       */
+/* ============================= */
+
+/* Tablets (≤1024px) */
+@media (max-width: 1024px) {
+  .bill-container,
+  .orders-container {
+    padding: 1.5rem;
+  }
+
+  .bill-container h2,
+  .orders-container h2 {
+    font-size: 1.6rem;
+  }
+
+  .pay-button,
+  .payment-form button {
+    padding: 10px 18px;
+    font-size: 0.95rem;
+  }
+}
+
+/* Mobiles (≤768px) */
+@media (max-width: 768px) {
+  .bill-container,
+  .orders-container {
+    padding: 1rem;
+    margin: 1.5rem 1rem;
+  }
+
+  .bill-container h2,
+  .orders-container h2 {
+    font-size: 1.4rem;
+  }
+
+  .order-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.5rem;
+  }
+
+  .pay-button,
+  .payment-form button {
+    width: 100%;
+    padding: 10px;
+    font-size: 0.9rem;
+  }
+}
+
+/* Extra Small Devices (≤480px) */
+@media (max-width: 480px) {
+  .bill-container,
+  .orders-container {
+    padding: 0.75rem;
+    margin: 1rem 0.5rem;
+  }
+
+  .bill-container h2,
+  .orders-container h2 {
+    font-size: 1.2rem;
+  }
+
+  .bill-card p,
+  .order-card span {
+    font-size: 0.85rem;
+  }
+
+  .pay-button,
+  .payment-form button {
+    padding: 8px;
+    font-size: 0.85rem;
+  }
+}

@@ -1,0 +1,55 @@
+package com.project.cart.controller;
+
+import com.project.cart.model.CartItem;
+import com.project.cart.service.CartService;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
+
+@RestController
+public class CartController {
+
+@Autowired
+private CartService cartService;
+
+@PostMapping("/user/add/{username}/{productName}")
+public ResponseEntity<CartItem> addToCart(
+@PathVariable String username,
+@PathVariable String productName,
+@RequestParam(defaultValue = "1") int quantity
+) {
+return ResponseEntity.ok(cartService.addToCart(username, productName, quantity));
+}
+
+@GetMapping("/user/{username}")
+public ResponseEntity<List<CartItem>> getCart(@PathVariable String username) {
+return ResponseEntity.ok(cartService.getCartByUsername(username));
+}
+
+@PutMapping("/user/update/{username}/{productName}")
+public ResponseEntity<CartItem> updateQuantity(
+@PathVariable String username,
+@PathVariable String productName,
+@RequestParam int quantity
+) {
+return ResponseEntity.ok(cartService.updateQuantity(username, productName, quantity));
+}
+
+@DeleteMapping("/user/remove/{username}/{productName}")
+public ResponseEntity<String> removeFromCart(
+@PathVariable String username,
+@PathVariable String productName
+) {
+cartService.removeFromCart(username, productName);
+return ResponseEntity.ok("Product removed from cart successfully.");
+}
+
+@DeleteMapping("/user/clear/{username}")
+public ResponseEntity<String> clearCart(@PathVariable String username) {
+cartService.clearCart(username);
+return ResponseEntity.ok("Cart cleared successfully.");
+}
+}

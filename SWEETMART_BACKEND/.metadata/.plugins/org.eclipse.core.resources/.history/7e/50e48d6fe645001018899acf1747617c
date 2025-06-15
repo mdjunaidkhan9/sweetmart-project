@@ -1,0 +1,121 @@
+package com.project.customer.service;
+
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.Mockito.*;
+
+import java.util.List;
+import java.util.Optional;
+
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.MockitoAnnotations;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+
+import com.project.customer.model.Customer;
+import com.project.customer.repository.CustomerRepository;
+
+class CustomerServiceTest {
+
+    @InjectMocks
+    private CustomerService customerService;
+
+    @Mock
+    private CustomerRepository customerRepository;
+
+    private Customer customer;
+
+    @BeforeEach
+    void setUp() {
+        MockitoAnnotations.openMocks(this);
+        customer = new Customer(1L, "junaid", "Junaid Khan", "junaid@example.com", "1234567890", "123 Street, NY");
+    }
+
+    @Test
+    void testSaveCustomer_Success() {
+        when(customerRepository.save(any(Customer.class))).thenReturn(customer);
+
+        ResponseEntity<Customer> response = customerService.saveCustomer("junaid", customer);
+
+        assertNotNull(response.getBody());
+        assertEquals("Junaid Khan", response.getBody().getName());
+        verify(customerRepository, times(1)).save(any(Customer.class));
+    }
+
+    @Test
+    void testSaveCustomer_InvalidUsername() {
+        ResponseEntity<Customer> response = customerService.saveCustomer("", customer);
+        assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
+    }
+
+    @Test
+    void testGetCustomer_Found() {
+        when(customerRepository.findByUsername("junaid")).thenReturn(Optional.of(customer));
+
+        ResponseEntity<Customer> response = customerService.getCustomer("junaid");
+
+        assertNotNull(response.getBody());
+        assertEquals("Junaid Khan", response.getBody().getName());
+        verify(customerRepository, times(1)).findByUsername("junaid");
+    }
+
+    @Test
+    void testGetCustomer_NotFound() {
+        when(customerRepository.findByUsername("unknown")).thenReturn(Optional.empty());
+
+        ResponseEntity<Customer> response = customerService.getCustomer("unknown");
+
+        assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
+    }
+
+    @Test
+    void testGetAllCustomers_NotEmpty() {
+        when(customerRepository.findAll()).thenReturn(List.of(customer));
+
+        ResponseEntity<List<Customer>> response = customerService.getAllCustomers();
+
+        assertFalse(response.getBody().isEmpty());
+        verify(customerRepository, times(1)).findAll();
+    }
+
+    @Test
+    void testGetAllCustomers_Empty() {
+        when(customerRepository.findAll()).thenReturn(List.of());
+
+        ResponseEntity<List<Customer>> response = customerService.getAllCustomers();
+
+        assertEquals(HttpStatus.NO_CONTENT, response.getStatusCode());
+    }
+
+    @Test
+    void testGetCustomersSortedByName() {
+        when(customerRepository.findAll()).thenReturn(List.of(customer));
+
+        ResponseEntity<List<Customer>> response = customerService.getAllCustomersSortedByName();
+
+        assertFalse(response.getBody().isEmpty());
+        verify(customerRepository, times(1)).findAll();
+    }
+
+    @Test
+    void testDeleteCustomer_Success() {
+        when(customerRepository.existsById(1L)).thenReturn(true);
+        doNothing().when(customerRepository).deleteById(1L);
+
+        ResponseEntity<String> response = customerService.deleteCustomer(1L);
+
+        assertEquals("Customer deleted with ID: 1", response.getBody());
+        verify(customerRepository, times(1)).deleteById(1L);
+    }
+
+    @Test
+    void testDeleteCustomer_NotFound() {
+        when(customerRepository.existsById(99L)).thenReturn(false);
+
+        ResponseEntity<String> response = customerService.deleteCustomer(99L);
+
+        assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
+    }
+}

@@ -1,0 +1,5 @@
+package com.project.orderbill.dto;
+
+public class CustomerDTO {
+
+}

@@ -1,0 +1,90 @@
+/* ============================== */
+/*      Payment Container Style   */
+/* ============================== */
+
+.payment-container {
+  max-width: 700px;
+  margin: 2rem auto;
+  padding: 2rem;
+  background-color: #ffffff;
+  border-radius: 12px;
+  box-shadow: 0 6px 16px rgba(36, 88, 60, 0.15);
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  color: #24583C;
+}
+
+/* Page Title */
+.payment-container h2 {
+  text-align: center;
+  margin-bottom: 1.5rem;
+  color: #24583C;
+  font-size: 2rem;
+}
+
+/* ============================== */
+/*        Payment Card Box        */
+/* ============================== */
+
+.payment-card {
+  background-color: #f5fdf5;
+  border-left: 6px solid #24583C;
+  border-radius: 10px;
+  padding: 1.5rem;
+  font-size: 1rem;
+  line-height: 1.6;
+  color: #333;
+}
+
+/* Paragraph Spacing */
+.payment-card p {
+  margin: 0.6rem 0;
+}
+
+/* Label Highlight */
+.payment-card strong {
+  color: #24583C;
+  font-weight: 600;
+}
+
+/* ============================== */
+/*      Responsive Design         */
+/* ============================== */
+
+/* Tablets (≤768px) */
+@media (max-width: 768px) {
+  .payment-container {
+    padding: 1.5rem 1rem;
+    margin: 1.5rem;
+  }
+
+  .payment-container h2 {
+    font-size: 1.6rem;
+  }
+
+  .payment-card {
+    padding: 1.2rem;
+    font-size: 0.95rem;
+  }
+}
+
+/* Phones (≤480px) */
+@media (max-width: 480px) {
+  .payment-container {
+    padding: 1rem 0.8rem;
+    margin: 1rem;
+    border-radius: 10px;
+  }
+
+  .payment-container h2 {
+    font-size: 1.4rem;
+  }
+
+  .payment-card {
+    padding: 1rem;
+    font-size: 0.9rem;
+  }
+
+  .payment-card p {
+    margin: 0.4rem 0;
+  }
+}

@@ -1,0 +1,121 @@
+/* Art Deco Elegance - Admin Bills Styling */
+
+.admin-bills-container {
+  background-color: #F5F5F5;
+  min-height: 100vh;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  color: #24583C;
+  padding: 2rem;
+}
+
+.admin-bills-content {
+  background-color: #FFFFFF;
+  padding: 2rem;
+  border-radius: 12px;
+  box-shadow: 0 0 15px rgba(36, 88, 60, 0.15);
+  max-width: 100%;
+  margin: 0 auto;
+  overflow-x: auto;
+}
+
+.admin-bills-content h2 {
+  font-size: 1.8rem;
+  color: #24583C;
+  margin-bottom: 1.5rem;
+  border-bottom: 2px solid #F5E74E;
+  padding-bottom: 0.5rem;
+}
+
+/* Flex grid scrollable layout */
+.bills-grid {
+  display: flex;
+  flex-wrap: nowrap;
+  gap: 1.5rem;
+  overflow-x: auto;
+  padding-bottom: 1rem;
+}
+
+.bill-card {
+  flex: 0 0 auto;
+  min-width: 280px;
+  max-width: 300px;
+  background-color: #fdfdfd;
+  border-left: 6px solid #24583C;
+  border-radius: 8px;
+  padding: 1.2rem;
+  box-shadow: 0 4px 10px rgba(36, 88, 60, 0.1);
+  transition: transform 0.2s ease;
+}
+
+.bill-card:hover {
+  transform: scale(1.03);
+}
+
+.bill-header div {
+  margin-bottom: 0.5rem;
+  font-size: 0.95rem;
+}
+
+/* -------------------- RESPONSIVENESS -------------------- */
+
+/* Medium Devices (Tablets) */
+@media (max-width: 1024px) {
+  .admin-bills-container {
+    padding: 1.5rem;
+  }
+
+  .admin-bills-content {
+    padding: 1.5rem;
+  }
+
+  .admin-bills-content h2 {
+    font-size: 1.6rem;
+  }
+
+  .bill-card {
+    min-width: 240px;
+    max-width: 260px;
+    padding: 1rem;
+  }
+}
+
+/* Small Devices (Mobiles) */
+@media (max-width: 768px) {
+  .admin-bills-container {
+    padding: 1rem;
+  }
+
+  .admin-bills-content {
+    padding: 1rem;
+  }
+
+  .admin-bills-content h2 {
+    font-size: 1.4rem;
+  }
+
+  .bills-grid {
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+
+  .bill-card {
+    min-width: 90%;
+    max-width: 100%;
+    padding: 1rem;
+  }
+
+  .bill-header div {
+    font-size: 0.9rem;
+  }
+}
+
+/* Extra Small Devices */
+@media (max-width: 480px) {
+  .admin-bills-content h2 {
+    font-size: 1.2rem;
+  }
+
+  .bill-header div {
+    font-size: 0.85rem;
+  }
+}

@@ -1,0 +1,154 @@
+//package com.project.orderbill.service;
+//
+//import com.project.orderbill.dto.OrderItemDTO;
+//import com.project.orderbill.dto.SweetOrderDTO;
+//import com.project.orderbill.entity.BillEntity;
+//import com.project.orderbill.feign.SweetOrderClient;
+//import com.project.orderbill.repository.BillRepository;
+//import org.junit.jupiter.api.BeforeEach;
+//import org.junit.jupiter.api.Test;
+//import org.junit.jupiter.api.extension.ExtendWith;
+//import org.mockito.InjectMocks;
+//import org.mockito.Mock;
+//import org.mockito.junit.jupiter.MockitoExtension;
+//import java.time.LocalDateTime;
+//import java.util.List;
+//import java.util.Optional;
+//import static org.junit.jupiter.api.Assertions.*;
+//import static org.mockito.Mockito.*;
+//
+//@ExtendWith(MockitoExtension.class)
+//class BillServiceTest {
+//
+//    @Mock
+//    private SweetOrderClient sweetOrderClient;
+//
+//    @Mock
+//    private BillRepository billRepository;
+//
+//    @InjectMocks
+//    private BillService billService;
+//
+//    private SweetOrderDTO sweetOrderDTO;
+//    private BillEntity billEntity;
+//
+//    @BeforeEach
+//    void setUp() {
+//        List<OrderItemDTO> items = List.of(new OrderItemDTO(101L, 201L, "Chocolate", 2, 50.0));
+//        sweetOrderDTO = new SweetOrderDTO(1L, "JohnDoe", LocalDateTime.now(), 100.0, items);
+//        billEntity = new BillEntity(1L, "JohnDoe", 100.0, LocalDateTime.now());
+//    }
+//
+//    @Test
+//    void testGenerateAndSaveBill_Success() {
+//        when(sweetOrderClient.getOrderById(1L)).thenReturn(sweetOrderDTO);
+//        when(billRepository.save(any(BillEntity.class))).thenReturn(billEntity);
+//
+//        BillEntity result = billService.generateAndSaveBill(1L);
+//
+//        assertNotNull(result);
+//        assertEquals(billEntity.getSweetOrderId(), result.getSweetOrderId());
+//        assertEquals(billEntity.getUsername(), result.getUsername());
+//        assertEquals(billEntity.getTotalAmount(), result.getTotalAmount());
+//        verify(sweetOrderClient).getOrderById(1L);
+//        verify(billRepository).save(any(BillEntity.class));
+//    }
+//
+//    @Test
+//    void testGenerateAndSaveBill_NullOrderId() {
+//        IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, () -> billService.generateAndSaveBill(null));
+//        assertEquals("Order ID cannot be null.", exception.getMessage());
+//    }
+//
+//    @Test
+//    void testGenerateAndSaveBill_OrderNotFound() {
+//        when(sweetOrderClient.getOrderById(1L)).thenReturn(null);
+//
+//        RuntimeException exception = assertThrows(RuntimeException.class, () -> billService.generateAndSaveBill(1L));
+//        assertEquals("Order not found for ID: 1", exception.getMessage());
+//    }
+//
+//    @Test
+//    void testGetOrderDetails_Success() {
+//        when(sweetOrderClient.getOrderById(1L)).thenReturn(sweetOrderDTO);
+//
+//        SweetOrderDTO result = billService.getOrderDetails(1L);
+//
+//        assertNotNull(result);
+//        assertEquals(sweetOrderDTO.getSweetOrderId(), result.getSweetOrderId());
+//        verify(sweetOrderClient).getOrderById(1L);
+//    }
+//
+//    @Test
+//    void testGetOrderDetails_NullOrderId() {
+//        IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, () -> billService.getOrderDetails(null));
+//        assertEquals("Order ID cannot be null.", exception.getMessage());
+//    }
+//
+//    @Test
+//    void testGetAllBills_Success() {
+//        when(billRepository.findAll()).thenReturn(List.of(billEntity));
+//
+//        List<BillEntity> result = billService.getAllBills();
+//
+//        assertFalse(result.isEmpty());
+//        assertEquals(1, result.size());
+//        verify(billRepository).findAll();
+//    }
+//
+//    @Test
+//    void testGetAllBills_Empty() {
+//        when(billRepository.findAll()).thenReturn(List.of());
+//
+//        RuntimeException exception = assertThrows(RuntimeException.class, () -> billService.getAllBills());
+//        assertEquals("No bills found.", exception.getMessage());
+//    }
+//
+//    @Test
+//    void testGetBillById_Success() {
+//        when(billRepository.findById(1L)).thenReturn(Optional.of(billEntity));
+//
+//        BillEntity result = billService.getBillById(1L);
+//
+//        assertNotNull(result);
+//        assertEquals(billEntity.getSweetOrderId(), result.getSweetOrderId());
+//        verify(billRepository).findById(1L);
+//    }
+//
+//    @Test
+//    void testGetBillById_NotFound() {
+//        when(billRepository.findById(1L)).thenReturn(Optional.empty());
+//
+//        RuntimeException exception = assertThrows(RuntimeException.class, () -> billService.getBillById(1L));
+//        assertEquals("Bill not found for ID: 1", exception.getMessage());
+//    }
+//
+//    @Test
+//    void testGetBillById_NullId() {
+//        IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, () -> billService.getBillById(null));
+//        assertEquals("Bill ID cannot be null.", exception.getMessage());
+//    }
+//
+//    @Test
+//    void testDeleteBill_Success() {
+//        when(billRepository.existsById(1L)).thenReturn(true);
+//
+//        assertDoesNotThrow(() -> billService.deleteBill(1L));
+//
+//        verify(billRepository).deleteById(1L);
+//    }
+//
+//    @Test
+//    void testDeleteBill_NotFound() {
+//        when(billRepository.existsById(1L)).thenReturn(false);
+//
+//        RuntimeException exception = assertThrows(RuntimeException.class, () -> billService.deleteBill(1L));
+//        assertEquals("Bill not found for ID: 1", exception.getMessage());
+//    }
+//
+//    @Test
+//    void testDeleteBill_NullId() {
+//        IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, () -> billService.deleteBill(null));
+//        assertEquals("Bill ID cannot be null.", exception.getMessage());
+//    }
+//}

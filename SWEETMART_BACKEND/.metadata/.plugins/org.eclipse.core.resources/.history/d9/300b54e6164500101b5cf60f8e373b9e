@@ -1,0 +1,37 @@
+package com.project.payment.controller;
+//package com.project.paymentservice.controller;
+
+import com.project.payment.entity.Payment;
+import com.project.payment.service.PaymentService;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
+
+@RestController
+@RequestMapping("/payment")
+public class PaymentController {
+
+    private final PaymentService paymentService;
+
+    public PaymentController(PaymentService paymentService) {
+        this.paymentService = paymentService;
+    }
+
+    @PostMapping("/{username}")
+    public ResponseEntity<Payment> pay(@PathVariable String username) {
+        try {
+            Payment payment = paymentService.processPayment(username);
+            return ResponseEntity.ok(payment);
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().build();
+        }
+    }
+
+    @GetMapping("/get/{username}")
+    public ResponseEntity<Payment> getPaymentDetails(@PathVariable String username) {
+        Payment payment = paymentService.getLatestPayment(username);
+        if (payment == null) {
+            return ResponseEntity.notFound().build();
+        }
+        return ResponseEntity.ok(payment);
+    }
+}

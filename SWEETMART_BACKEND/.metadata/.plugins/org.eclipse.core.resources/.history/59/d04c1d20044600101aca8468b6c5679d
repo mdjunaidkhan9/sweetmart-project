@@ -1,0 +1,14 @@
+package com.project.payment.feign;
+
+
+
+import com.project.payment.dto.BillDTO;
+import org.springframework.cloud.openfeign.FeignClient;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+
+@FeignClient(name = "ORDERBILLSERVICE")
+public interface OrderBillClient {
+    @GetMapping("/getbill/{username}")
+    BillDTO getBillByUsername(@PathVariable("username") String username);
+}

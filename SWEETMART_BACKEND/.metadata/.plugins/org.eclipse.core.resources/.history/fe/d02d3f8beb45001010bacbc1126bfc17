@@ -1,0 +1,151 @@
+package com.project.cart.service;
+
+import com.project.cart.feign.ProductFeignClient;
+import com.project.cart.model.CartItem;
+import com.project.cart.model.ProductEntity;
+import com.project.cart.repository.CartItemRepository;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.mockito.*;
+import java.util.*;
+
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.Mockito.*;
+
+class CartServiceTest {
+
+    @Mock
+    private CartItemRepository cartRepository;
+
+    @Mock
+    private ProductFeignClient productClient;
+
+    @InjectMocks
+    private CartService service;
+
+    private CartItem cartItem;
+    private ProductEntity product;
+
+    @BeforeEach
+    void setUp() {
+        MockitoAnnotations.openMocks(this);
+        cartItem = new CartItem();
+        cartItem.setUsername("user1");
+        cartItem.setProductName("prod1");
+        cartItem.setQuantity(2);
+        cartItem.setProductId(1L);
+        cartItem.setProductPrice(10.0);
+
+        product = new ProductEntity();
+        product.setProductId(1L);
+        product.setProductName("prod1");
+        product.setProductPrice(10.0);
+    }
+
+    @Test
+    void addToCart_InvalidInput() {
+        assertThrows(IllegalArgumentException.class, () -> service.addToCart(null, "prod1", 1));
+        assertThrows(IllegalArgumentException.class, () -> service.addToCart("user1", null, 1));
+        assertThrows(IllegalArgumentException.class, () -> service.addToCart("user1", "prod1", 0));
+        assertThrows(IllegalArgumentException.class, () -> service.addToCart("   ", "prod1", 1));
+        assertThrows(IllegalArgumentException.class, () -> service.addToCart("user1", "   ", 1));
+    }
+
+    @Test
+    void addToCart_ExistingItem() {
+        when(cartRepository.findByUsernameAndProductName("user1", "prod1")).thenReturn(cartItem);
+        when(cartRepository.save(any(CartItem.class))).thenReturn(cartItem);
+        CartItem result = service.addToCart("user1", "prod1", 3);
+        assertEquals(5, result.getQuantity());
+    }
+
+    @Test
+    void addToCart_ProductNotFound() {
+        when(cartRepository.findByUsernameAndProductName("user1", "prod1")).thenReturn(null);
+        when(productClient.getProductByName("prod1")).thenReturn(null);
+        assertThrows(IllegalArgumentException.class, () -> service.addToCart("user1", "prod1", 2));
+    }
+
+    @Test
+    void addToCart_NewItem() {
+        when(cartRepository.findByUsernameAndProductName("user1", "prod1")).thenReturn(null);
+        when(productClient.getProductByName("prod1")).thenReturn(product);
+        when(cartRepository.save(any(CartItem.class))).thenReturn(cartItem);
+        CartItem result = service.addToCart("user1", "prod1", 2);
+        assertEquals(cartItem, result);
+    }
+
+    @Test
+    void getCartByUsername_Invalid() {
+        assertThrows(IllegalArgumentException.class, () -> service.getCartByUsername(null));
+        assertThrows(IllegalArgumentException.class, () -> service.getCartByUsername("   "));
+    }
+
+    @Test
+    void getCartByUsername_Valid() {
+        when(cartRepository.findByUsername("user1")).thenReturn(List.of(cartItem));
+        List<CartItem> result = service.getCartByUsername("user1");
+        assertEquals(1, result.size());
+    }
+
+    @Test
+    void updateQuantity_InvalidInput() {
+        assertThrows(IllegalArgumentException.class, () -> service.updateQuantity(null, "prod1", 1));
+        assertThrows(IllegalArgumentException.class, () -> service.updateQuantity("user1", null, 1));
+        assertThrows(IllegalArgumentException.class, () -> service.updateQuantity("user1", "prod1", 0));
+    }
+
+    @Test
+    void updateQuantity_ItemNotFound() {
+        when(cartRepository.findByUsernameAndProductName("user1", "prod1")).thenReturn(null);
+        assertThrows(IllegalArgumentException.class, () -> service.updateQuantity("user1", "prod1", 2));
+    }
+
+    @Test
+    void updateQuantity_Success() {
+        when(cartRepository.findByUsernameAndProductName("user1", "prod1")).thenReturn(cartItem);
+        when(cartRepository.save(any(CartItem.class))).thenReturn(cartItem);
+        CartItem result = service.updateQuantity("user1", "prod1", 5);
+        assertEquals(5, result.getQuantity());
+    }
+
+    @Test
+    void removeFromCart_InvalidInput() {
+        assertThrows(IllegalArgumentException.class, () -> service.removeFromCart(null, "prod1"));
+        assertThrows(IllegalArgumentException.class, () -> service.removeFromCart("user1", null));
+        assertThrows(IllegalArgumentException.class, () -> service.removeFromCart("   ", "prod1"));
+        assertThrows(IllegalArgumentException.class, () -> service.removeFromCart("user1", "   "));
+    }
+
+    @Test
+    void removeFromCart_ItemNotFound() {
+        when(cartRepository.findByUsernameAndProductName("user1", "prod1")).thenReturn(null);
+        assertThrows(IllegalArgumentException.class, () -> service.removeFromCart("user1", "prod1"));
+    }
+
+    @Test
+    void removeFromCart_Success() {
+        when(cartRepository.findByUsernameAndProductName("user1", "prod1")).thenReturn(cartItem);
+        doNothing().when(cartRepository).delete(cartItem);
+        assertDoesNotThrow(() -> service.removeFromCart("user1", "prod1"));
+    }
+
+    @Test
+    void clearCart_InvalidInput() {
+        assertThrows(IllegalArgumentException.class, () -> service.clearCart(null));
+        assertThrows(IllegalArgumentException.class, () -> service.clearCart("   "));
+    }
+
+    @Test
+    void clearCart_EmptyCart() {
+        when(cartRepository.findByUsername("user1")).thenReturn(Collections.emptyList());
+        assertDoesNotThrow(() -> service.clearCart("user1"));
+    }
+
+    @Test
+    void clearCart_Success() {
+        when(cartRepository.findByUsername("user1")).thenReturn(List.of(cartItem));
+        doNothing().when(cartRepository).deleteAll(anyList());
+        assertDoesNotThrow(() -> service.clearCart("user1"));
+    }
+}

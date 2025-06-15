@@ -1,0 +1,27 @@
+package com.project.orderbill.controller;
+
+import com.project.orderbill.entity.BillEntity;
+import com.project.orderbill.service.BillService;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
+
+@RestController
+public class BillController {
+
+    @Autowired
+    private BillService billService;
+
+    // POST: {username}/orderbill
+    @PostMapping("/{username}/orderbill")
+    public BillEntity createBill(@PathVariable String username) {
+        return billService.generateBill(username);
+    }
+
+    // GET: getbill/{username}
+    @GetMapping("/getbill/{username}")
+    public List<BillEntity> getBills(@PathVariable String username) {
+        return billService.getBills(username);
+    }
+}

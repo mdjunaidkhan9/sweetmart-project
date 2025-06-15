@@ -1,0 +1,72 @@
+package com.project.product.service;
+
+import java.util.List;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Sort;
+import org.springframework.http.ResponseEntity;
+import org.springframework.stereotype.Service;
+
+import com.project.product.feign.CategoryClient;
+import com.project.product.model.CategoryEntityDTO;
+import com.project.product.model.ProductEntity;
+import com.project.product.repository.ProductRepository;
+
+@Service
+public class ProductService {
+	    @Autowired
+	    private CategoryClient categoryClient;
+	 	
+	    @Autowired
+	    private ProductRepository productRepository;
+	    
+	    public List<CategoryEntityDTO> fetchAllCategories() {
+	        return categoryClient.getAllCategories();
+	    }
+	    
+	    public ResponseEntity<ProductEntity> addproduct(ProductEntity productEntity){
+	    	ProductEntity addproduct=productRepository.save(productEntity);
+	    	return ResponseEntity.ok(addproduct);
+	    }
+	    
+	    public List<ProductEntity> allproducts(){
+	    	return productRepository.findAll();
+	    }
+	    public ProductEntity getProductByName(String name) {
+	        return productRepository.findByProductName(name)
+	                .orElseThrow(() -> new RuntimeException("Product not found with name: " + name));
+	    }
+	    public List<ProductEntity> findallbysort(){
+			List<ProductEntity> allCategorysortCategoryEntities=productRepository.findAll(Sort.by("productPrice"));
+			return allCategorysortCategoryEntities;
+		}
+	    public List<ProductEntity> findallbysortbyname(){
+			List<ProductEntity> allCategorysortCategoryEntities=productRepository.findAll(Sort.by("productName"));
+			return allCategorysortCategoryEntities;
+		}
+	    public List<ProductEntity> getProductsByCategory(String category) {
+	        return productRepository.findByProductCategory(category);
+	    }
+	    public ResponseEntity<ProductEntity> updateEntity(int productId,ProductEntity newProduct){
+			 return productRepository.findById(productId)
+				        .map(existing -> {
+				            existing.setProductName(newProduct.getProductName());
+				            existing.setProductPrice(newProduct.getProductPrice());
+				            existing.setProductDescription(newProduct.getProductDescription());
+				            existing.setProductAvailable(newProduct.isProductAvailable());
+				            existing.setProductCategory(newProduct.getProductCategory());
+				            ProductEntity updated = productRepository.save(existing);
+				            return ResponseEntity.ok(updated); // return the updated object
+				        })
+				        .orElse(ResponseEntity.notFound().build());
+		}
+	    public ResponseEntity<String> deleteCategory(int productId) {
+		    if (productRepository.existsById(productId)) {
+		        productRepository.deleteById(productId);
+		        return ResponseEntity.ok("Product with ID " + productId + " deleted successfully.");
+		    } else {
+		        return ResponseEntity.status(404).body("Product not found.");
+		    }
+		}
+}
+

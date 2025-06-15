@@ -1,0 +1,68 @@
+package com.project.category.service;
+
+import com.project.category.feign.ProductClient;
+import com.project.category.repo.CategoryRepo;
+import com.project.category.entity.*;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import java.util.ArrayList;
+import java.util.List;
+
+@Service
+public class CategoryService {
+
+    @Autowired
+    private CategoryRepo categoryRepository;
+
+    @Autowired
+    private ProductClient productClient;
+
+    public List<CategoryWithProductsDTO> getAllCategoriesWithProducts() {
+        List<CategoryEntity> categories = categoryRepository.findAll();
+        List<CategoryWithProductsDTO> result = new ArrayList<>();
+
+        for (CategoryEntity category : categories) {
+            CategoryWithProductsDTO dto = new CategoryWithProductsDTO();
+
+            dto.setCategoryId(category.getCategoryId());
+            dto.setCategoryName(category.getCategoryName());
+            dto.setCategoryDescription(category.getCategoryDescription());
+
+            List<ProductDTO> products = productClient.getProductsByCategory(category.getCategoryName());
+            dto.setProducts(products);
+
+            result.add(dto);
+        }
+
+        return result;
+    }
+
+    public CategoryEntity addCategory(CategoryEntity category) {
+        return categoryRepository.save(category);
+    }
+
+    public List<CategoryEntity> getAllCategories() {
+        return categoryRepository.findAll();
+    }
+    public CategoryEntity updateCategory(int id, CategoryEntity updatedCategory) {
+        CategoryEntity existing = categoryRepository.findById(id)
+            .orElseThrow(() -> new RuntimeException("Category not found with id: " + id));
+
+        existing.setCategoryName(updatedCategory.getCategoryName());
+        existing.setCategoryDescription(updatedCategory.getCategoryDescription());
+
+        return categoryRepository.save(existing);
+    }
+
+    public String deleteCategory(int id) {
+        if (!categoryRepository.existsById(id)) {
+            throw new RuntimeException("Category not found with id: " + id);
+        }
+
+        categoryRepository.deleteById(id);
+        return "Category deleted with id: " + id;
+    }
+
+}

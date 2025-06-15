@@ -1,0 +1,96 @@
+package com.project.category.service;
+
+import com.project.category.entity.CategoryEntity;
+import com.project.category.entity.CategoryWithProductsDTO;
+import com.project.category.feign.ProductClient;
+import com.project.category.repo.CategoryRepo;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.mockito.*;
+import org.springframework.http.ResponseEntity;
+
+import java.util.*;
+
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.Mockito.*;
+
+class CategoryServiceTest {
+
+    @Mock
+    private CategoryRepo categoryRepo;
+
+    @Mock
+    private ProductClient productClient;
+
+    @InjectMocks
+    private CategoryService categoryService;
+
+    @BeforeEach
+    void setUp() {
+        MockitoAnnotations.openMocks(this);
+    }
+
+    @Test
+    void addCategory_shouldReturnSavedCategory() {
+        CategoryEntity input = new CategoryEntity();
+        input.setCategoryName("Milk Sweets");
+        input.setCategoryDescription("Sweet made with milk");
+
+        when(categoryRepo.save(input)).thenReturn(input);
+
+        ResponseEntity<CategoryEntity> response = categoryService.addCategory(input);
+
+        assertEquals("Milk Sweets", response.getBody().getCategoryName());
+    }
+
+    @Test
+    void getAllCategories_shouldReturnList() {
+        List<CategoryEntity> list = Arrays.asList(new CategoryEntity());
+        when(categoryRepo.findAll()).thenReturn(list);
+
+        ResponseEntity<List<CategoryEntity>> response = categoryService.getAllCategories();
+        assertEquals(1, response.getBody().size());
+    }
+
+    @Test
+    void updateCategory_shouldUpdateFields() {
+        CategoryEntity existing = new CategoryEntity();
+        existing.setCategoryId(1);
+        existing.setCategoryName("Old");
+        existing.setCategoryDescription("Old Desc");
+
+        CategoryEntity updated = new CategoryEntity();
+        updated.setCategoryName("New");
+        updated.setCategoryDescription("New Desc");
+
+        when(categoryRepo.findById(1)).thenReturn(Optional.of(existing));
+        when(categoryRepo.save(any())).thenReturn(existing);
+
+        ResponseEntity<CategoryEntity> result = categoryService.updateCategory(1, updated);
+
+        assertEquals("New", result.getBody().getCategoryName());
+    }
+
+    @Test
+    void deleteCategory_shouldReturnMessage() {
+        when(categoryRepo.existsById(1)).thenReturn(true);
+        doNothing().when(categoryRepo).deleteById(1);
+
+        ResponseEntity<String> result = categoryService.deleteCategory(1);
+        assertEquals("Category deleted with id: 1", result.getBody());
+    }
+
+    @Test
+    void getAllCategoriesWithProducts_shouldReturnDTOs() {
+        CategoryEntity category = new CategoryEntity();
+        category.setCategoryId(1);
+        category.setCategoryName("Milk");
+        category.setCategoryDescription("Desc");
+
+        when(categoryRepo.findAll()).thenReturn(List.of(category));
+        when(productClient.getProductsByCategory("Milk")).thenReturn(new ArrayList<>());
+
+        ResponseEntity<List<CategoryWithProductsDTO>> response = categoryService.getAllCategoriesWithProducts();
+        assertEquals(1, response.getBody().size());
+    }
+}

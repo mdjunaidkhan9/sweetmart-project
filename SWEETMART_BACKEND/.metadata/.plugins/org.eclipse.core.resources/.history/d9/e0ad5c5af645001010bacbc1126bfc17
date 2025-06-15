@@ -1,0 +1,49 @@
+package com.project.orderbill.service;
+
+import com.project.orderbill.dto.CustomerDTO;
+import com.project.orderbill.dto.SweetOrderDTO;
+import com.project.orderbill.entity.Bill;
+import com.project.orderbill.feign.CustomerClient;
+import com.project.orderbill.feign.SweetOrderClient;
+import com.project.orderbill.repository.BillRepository;
+import org.springframework.stereotype.Service;
+
+import java.time.LocalDateTime;
+import java.util.List;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+import java.util.List;
+
+@Service
+public class BillService {
+
+    @Autowired
+    private SweetOrderClient sweetOrderClient;
+    @Autowired
+    private CustomerClient customerClient;
+    @Autowired
+    private BillRepository billRepository;
+
+    public Bill createBill(String username) {
+        List<SweetOrderDTO> orders = sweetOrderClient.getOrders(username);
+        if (orders == null || orders.isEmpty())
+            throw new RuntimeException("No orders found for user: " + username);
+
+        SweetOrderDTO latestOrder = orders.get(orders.size() - 1);
+        CustomerDTO customer = customerClient.getCustomer(username);
+
+        Bill bill = new Bill();
+        bill.setSweetOrderId(latestOrder.getId());
+        bill.setUsername(username);
+        bill.setName(customer.getName());
+        bill.setShippingAddress(customer.getShippingAddress());
+        bill.setTotalAmount(latestOrder.getTotalAmount());
+        bill.setCreatedDate(java.time.LocalDateTime.now());
+
+        return billRepository.save(bill);
+    }
+
+    public Bill getLatestBill(String username) {
+        return billRepository.findTopByUsernameOrderByCreatedDateDesc(username);
+    }
+}

@@ -1,0 +1,74 @@
+package com.project.auth.controller;
+
+import com.project.auth.model.User;
+import com.project.auth.service.AuthService;
+import com.project.auth.repo.UserRepository;
+import lombok.*;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
+
+@RestController
+public class AuthController {
+
+    @Autowired
+    private UserRepository userRepository;
+
+    @Autowired
+    private PasswordEncoder passwordEncoder;
+
+    @Autowired
+    private AuthService authService;
+
+    @PostMapping("/register")
+    public ResponseEntity<String> registerUser(@RequestBody User user) {
+        if (user.getUsername() == null || user.getPassword() == null || 
+            user.getRole() == null || user.getUserEmail() == null) {
+            return ResponseEntity.badRequest().body("Username, password, role, and email must not be null");
+        }
+
+        String result = authService.register(user);
+
+        if (result.equals("Username taken")) {
+            return ResponseEntity.badRequest().body("Username already exists");
+        }
+
+        return ResponseEntity.ok(result);
+    }
+
+    @PostMapping("/login")
+    public ResponseEntity<String> login(@RequestBody LoginRequest request) {
+        try {
+            String token = authService.login(request.getUsername(), request.getPassword());
+            return ResponseEntity.ok(token);
+        } catch (Exception e) {
+            return ResponseEntity.status(500).body("Error: " + e.getMessage());
+        }
+    }
+
+    @GetMapping("/users")
+    public ResponseEntity<List<User>> getAllUsers() {
+        List<User> users = authService.getAllUsers();
+        return ResponseEntity.ok(users);
+    }
+    @GetMapping("/users/role/{role}")
+    public ResponseEntity<List<User>> getUsersByRole(@PathVariable String role) {
+        List<User> users = authService.getUsersByRole(role.toUpperCase());
+        return ResponseEntity.ok(users);
+    }
+
+    static class LoginRequest {
+        private String username;
+        private String password;
+
+        public String getUsername() { return username; }
+        public void setUsername(String username) { this.username = username; }
+
+        public String getPassword() { return password; }
+        public void setPassword(String password) { this.password = password; }
+    }
+}

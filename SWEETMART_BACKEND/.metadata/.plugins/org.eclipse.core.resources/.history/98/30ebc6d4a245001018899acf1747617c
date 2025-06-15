@@ -1,0 +1,46 @@
+package com.project.category.controller;
+
+import com.project.category.entity.*;
+import com.project.category.model.CategoryWithProductsDTO;
+import com.project.category.service.CategoryService;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
+
+@RestController
+public class CategoryController {
+
+    @Autowired
+    private CategoryService categoryService;
+
+    @PostMapping("/admin/add")
+    public ResponseEntity<CategoryEntity> addCategory(@RequestBody CategoryEntity category) {
+        CategoryEntity saved = categoryService.addCategory(category);
+        return ResponseEntity.ok(saved);
+    }
+
+    @GetMapping("/admin/all")
+    public ResponseEntity<List<CategoryEntity>> getAllCategories() {
+        return ResponseEntity.ok(categoryService.getAllCategories());
+    }
+
+    @PutMapping("/admin/update/{id}")
+    public ResponseEntity<CategoryEntity> updateCategory(@PathVariable int id, @RequestBody CategoryEntity updatedCategory) {
+        CategoryEntity updated = categoryService.updateCategory(id, updatedCategory);
+        return ResponseEntity.ok(updated);
+    }
+
+    @DeleteMapping("/admin/delete/{id}")
+    public ResponseEntity<String> deleteCategory(@PathVariable int id) {
+        String msg = categoryService.deleteCategory(id);
+        return ResponseEntity.ok(msg);
+    }
+
+    @GetMapping("/all-with-products")
+    public ResponseEntity<List<CategoryWithProductsDTO>> getAllCategoriesWithProducts() {
+        List<CategoryWithProductsDTO> result = categoryService.getAllCategoriesWithProducts();
+        return ResponseEntity.ok(result);
+    }
+}

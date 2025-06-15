@@ -1,0 +1,48 @@
+package com.project.payment.service;
+
+import com.project.payment.dto.BillDTO;
+import com.project.payment.entity.PaymentEntity;
+import com.project.payment.exception.ResourceNotFoundException;
+import com.project.payment.feign.OrderBillClient;
+import com.project.payment.repository.PaymentRepository;
+import org.springframework.stereotype.Service;
+
+import java.time.LocalDateTime;
+import java.util.List;
+
+@Service
+public class PaymentService {
+    private final PaymentRepository repo;
+    private final OrderBillClient billClient;
+
+    public PaymentService(PaymentRepository repo, OrderBillClient billClient) {
+        this.repo = repo;
+        this.billClient = billClient;
+    }
+
+    public PaymentEntity makePayment(Long billId) {
+        BillDTO bill = billClient.getBillById(billId);
+        if (bill == null) throw new ResourceNotFoundException("Bill not found");
+
+        PaymentEntity payment = new PaymentEntity(
+                bill.getBillId(), bill.getUsername(), bill.getTotalAmount(),
+                "SUCCESS", LocalDateTime.now()
+        );
+        return repo.save(payment);
+    }
+
+    public List<PaymentEntity> getAllPayments() {
+        return repo.findAll();
+    }
+
+    public PaymentEntity getPaymentById(Long id) {
+        return repo.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Payment not found"));
+    }
+
+    public void deletePayment(Long id) {
+        if (!repo.existsById(id))
+            throw new ResourceNotFoundException("Payment not found");
+        repo.deleteById(id);
+    }
+}

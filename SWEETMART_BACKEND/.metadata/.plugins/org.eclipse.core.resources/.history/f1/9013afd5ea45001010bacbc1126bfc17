@@ -1,0 +1,50 @@
+package com.project.cart.controller;
+
+import com.project.cart.model.CartItem;
+import com.project.cart.service.CartService;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
+
+@RestController
+@RequestMapping("/cart")
+public class CartController {
+
+    @Autowired
+    private CartService service;
+
+    @PostMapping("/add")
+    public ResponseEntity<CartItem> addToCart(
+            @RequestParam String username,
+            @RequestParam String productName,
+            @RequestParam Integer quantity) {
+        return service.addToCart(username, productName, quantity);
+    }
+
+    @GetMapping("/{username}")
+    public ResponseEntity<List<CartItem>> getCartByUsername(@PathVariable String username) {
+        return service.getCartByUsername(username);
+    }
+
+    @PutMapping("/update")
+    public ResponseEntity<CartItem> updateQuantity(
+            @RequestParam String username,
+            @RequestParam String productName,
+            @RequestParam Integer quantity) {
+        return service.updateQuantity(username, productName, quantity);
+    }
+
+    @DeleteMapping("/remove")
+    public ResponseEntity<String> removeFromCart(
+            @RequestParam String username,
+            @RequestParam String productName) {
+        return service.removeFromCart(username, productName);
+    }
+
+    @DeleteMapping("/clear/{username}")
+    public ResponseEntity<String> clearCart(@PathVariable String username) {
+        return service.clearCart(username);
+    }
+}

@@ -1,0 +1,78 @@
+package com.project.cart.controller;
+
+import com.project.cart.model.CartItem;
+import com.project.cart.service.CartService;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
+
+@RestController
+public class CartController {
+
+    @Autowired
+    private CartService cartService;
+
+    @PostMapping("/user/add/{username}/{productName}")
+    public ResponseEntity<CartItem> addToCart(
+            @PathVariable String username,
+            @PathVariable String productName,
+            @RequestParam(defaultValue = "1") int quantity
+    ) {
+        if (username == null || username.trim().isEmpty()
+                || productName == null || productName.trim().isEmpty()
+                || quantity <= 0) {
+            return ResponseEntity.badRequest().body(null);
+        }
+        ResponseEntity<CartItem> resp = cartService.addToCart(username, productName, quantity);
+        return new ResponseEntity<>(resp.getBody(), resp.getStatusCode());
+    }
+
+    @GetMapping("/user/{username}")
+    public ResponseEntity<List<CartItem>> getCart(@PathVariable String username) {
+        if (username == null || username.trim().isEmpty()) {
+            return ResponseEntity.badRequest().body(null);
+        }
+        ResponseEntity<List<CartItem>> resp = cartService.getCartByUsername(username);
+        return new ResponseEntity<>(resp.getBody(), resp.getStatusCode());
+    }
+
+    @PutMapping("/user/update/{username}/{productName}")
+    public ResponseEntity<CartItem> updateQuantity(
+            @PathVariable String username,
+            @PathVariable String productName,
+            @RequestParam int quantity
+    ) {
+        if (username == null || username.trim().isEmpty()
+                || productName == null || productName.trim().isEmpty()
+                || quantity <= 0) {
+            return ResponseEntity.badRequest().body(null);
+        }
+        ResponseEntity<CartItem> resp = cartService.updateQuantity(username, productName, quantity);
+        return new ResponseEntity<>(resp.getBody(), resp.getStatusCode());
+    }
+
+    @DeleteMapping("/user/remove/{username}/{productName}")
+    public ResponseEntity<String> removeFromCart(
+            @PathVariable String username,
+            @PathVariable String productName
+    ) {
+        if (username == null || username.trim().isEmpty()
+                || productName == null || productName.trim().isEmpty()) {
+            return ResponseEntity.badRequest().body("Invalid input for removeFromCart");
+        }
+        ResponseEntity<String> resp = cartService.removeFromCart(username, productName);
+        return new ResponseEntity<>(resp.getBody(), resp.getStatusCode());
+    }
+
+    @DeleteMapping("/user/clear/{username}")
+    public ResponseEntity<String> clearCart(@PathVariable String username) {
+        if (username == null || username.trim().isEmpty()) {
+            return ResponseEntity.badRequest().body("Username is required for clearCart");
+        }
+        ResponseEntity<String> resp = cartService.clearCart(username);
+        return new ResponseEntity<>(resp.getBody(), resp.getStatusCode());
+    }
+}

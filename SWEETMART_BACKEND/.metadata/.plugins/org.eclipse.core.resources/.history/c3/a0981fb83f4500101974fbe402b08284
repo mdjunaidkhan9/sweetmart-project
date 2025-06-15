@@ -1,0 +1,62 @@
+package com.project.auth.service;
+
+import com.project.auth.model.User;
+import com.project.auth.repo.UserRepository;
+import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.stereotype.Service;
+import java.util.*;
+@Service // Marks class as Spring Service (business logic)
+public class AuthService {
+
+    @Autowired
+    private UserRepository repo;
+
+    @Autowired
+    private PasswordEncoder encoder;
+
+    @Autowired
+    private JwtUtil jwtUtil;
+
+    @Autowired
+    private EmailService emailService;
+
+    public String register(User user) {
+        // Checks if username already exists
+        if (repo.findByUsername(user.getUsername()).isPresent()) {
+            return "Username taken";
+        }
+
+        user.setPassword(encoder.encode(user.getPassword())); // Hash password
+        repo.save(user); // Save user in DB
+
+        try {
+            emailService.sendEmail(
+                user.getUserEmail(),
+                "Registration Successful",
+                "Welcome, " + user.getUsername() + "! Your account is now active.",
+                user.getRole()
+            );
+        } catch (Exception e) {
+            System.err.println("Email sending failed: " + e.getMessage());
+        }
+
+        return "User registered successfully";
+    }
+
+    public String login(String username, String password) {
+        User user = repo.findByUsername(username)
+                .orElseThrow(() -> new RuntimeException("User not found")); // Validates user
+
+        if (encoder.matches(password, user.getPassword())) {
+            return jwtUtil.generateToken(user.getUsername(), user.getRole()); // Returns JWT
+        } else {
+            throw new RuntimeException("Invalid credentials");
+        }
+    }
+    public List<User> getAllUsers() {
+        return repo.findAll();
+    }
+}
+

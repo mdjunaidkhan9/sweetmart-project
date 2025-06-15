@@ -1,0 +1,199 @@
+/* Art Deco Elegance - Admin Orders Styling */
+
+.admin-orders-container {
+  background-color: #F5F5F5; /* Wild Sand */
+  min-height: 100vh;
+  margin-top: 500px;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  color: #24583C; /* Everglade */
+  padding: 2rem;
+}
+
+.admin-orders-content {
+  background-color: #FFFFFF;
+  padding: 2rem;
+  border-radius: 12px;
+  box-shadow: 0 0 15px rgba(36, 88, 60, 0.15);
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.admin-orders-content h2 {
+  font-size: 1.8rem;
+  color: #24583C;
+  margin-bottom: 1.5rem;
+  border-bottom: 2px solid #F5E74E;
+  padding-bottom: 0.5rem;
+}
+
+.orders-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.order-card {
+  background-color: #fdfdfd;
+  border-left: 6px solid #24583C;
+  border-radius: 8px;
+  padding: 1.5rem;
+  box-shadow: 0 4px 10px rgba(36, 88, 60, 0.1);
+  transition: transform 0.2s ease;
+}
+
+.order-card:hover {
+  transform: scale(1.01);
+}
+
+.order-header {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.order-header div {
+  flex: 1 1 150px;
+}
+
+.order-header button {
+  background-color: #24583C;
+  color: #F5E74E;
+  padding: 0.4rem 0.8rem;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-weight: bold;
+  transition: background-color 0.3s ease;
+}
+
+.order-header button:hover {
+  background-color: #15432b;
+}
+
+.order-items {
+  margin-top: 1rem;
+  background-color: #f9fdfc;
+  border: 1px solid #cce7dd;
+  padding: 1rem;
+  border-radius: 8px;
+}
+
+.order-items h4 {
+  margin-bottom: 1rem;
+  color: #24583C;
+}
+
+.order-item {
+  background-color: #e9f6f1;
+  padding: 0.75rem 1rem;
+  margin-bottom: 0.75rem;
+  border-radius: 6px;
+  border-left: 4px solid #24583C;
+  box-shadow: 0 1px 4px rgba(36, 88, 60, 0.05);
+}
+
+/* ------------------ Responsive Design ------------------ */
+
+/* Tablets (max-width: 1024px) */
+@media (max-width: 1024px) {
+  .admin-orders-container {
+    margin-top: 400px;
+    padding: 1.5rem;
+  }
+
+  .admin-orders-content {
+    padding: 1.5rem;
+  }
+
+  .admin-orders-content h2 {
+    font-size: 1.6rem;
+  }
+
+  .order-card {
+    padding: 1.2rem;
+  }
+
+  .order-header div {
+    flex: 1 1 120px;
+  }
+
+  .order-items {
+    padding: 0.75rem;
+  }
+
+  .order-item {
+    font-size: 0.95rem;
+  }
+}
+
+/* Mobile Devices (max-width: 768px) */
+@media (max-width: 768px) {
+  .admin-orders-container {
+    margin-top: 300px;
+    padding: 1rem;
+  }
+
+  .admin-orders-content {
+    padding: 1rem;
+  }
+
+  .admin-orders-content h2 {
+    font-size: 1.4rem;
+    text-align: center;
+  }
+
+  .order-header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .order-header div,
+  .order-header button {
+    width: 100%;
+  }
+
+  .order-header button {
+    padding: 0.5rem;
+    font-size: 0.9rem;
+  }
+
+  .order-items h4 {
+    font-size: 1rem;
+  }
+
+  .order-item {
+    padding: 0.5rem;
+    font-size: 0.9rem;
+  }
+}
+
+/* Extra Small Devices (max-width: 480px) */
+@media (max-width: 480px) {
+  .admin-orders-container {
+    margin-top: 200px;
+    padding: 0.75rem;
+  }
+
+  .admin-orders-content {
+    padding: 0.75rem;
+  }
+
+  .admin-orders-content h2 {
+    font-size: 1.2rem;
+  }
+
+  .order-card {
+    padding: 0.75rem;
+  }
+
+  .order-item {
+    font-size: 0.85rem;
+  }
+
+  .order-header button {
+    font-size: 0.85rem;
+    padding: 0.4rem 0.6rem;
+  }
+}
